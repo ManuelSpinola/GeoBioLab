@@ -1,0 +1,17 @@
+{
+  "hash": "414a7ea83e1bcd99a7e6c8781829e610",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Bosque tropical húmedo en Costa Rica\"\ndescription: |\n  Principales clases\nformat:\n  html:\n    embed-resources: true\nlang: es\nexecute: \n  echo: false\n  include: false\n---\n\n\n\n\n# Principales clases de bosque tropical húmedo en Costa Rica\n\n\n\n\n\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![Clases principales del bosque tropical húmedo de Costa Rica.](bosque_tropical_humedo_cr_files/figure-html/fig-mc_cr-1.png){#fig-mc_cr width=100%}\n:::\n:::\n\n\n\n# Subtipos de bosque tropical húmedo en Costa Rica\n\n\n\n\n\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![Bosque tropical húmedo de Costa Rica.](bosque_tropical_humedo_cr_files/figure-html/fig-st_cr-1.png){#fig-st_cr width=100%}\n:::\n:::\n\n\n# Bosque tropical húmedo no alterado en Costa Rica\n\n\n\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![Bosque tropical húmedo no alterado de Costa Rica.](bosque_tropical_humedo_cr_files/figure-html/fig-ud_cr-1.png){#fig-ud_cr width=100%}\n:::\n:::\n\n\n# Cambio anual de bosque tropical húmedo en Costa Rica\n\n\n\n\n\n\n\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![Cambio anual del bosque tropical húmedo de Costa Rica.](bosque_tropical_humedo_cr_files/figure-html/fig-ac_cr_01-1.png){#fig-ac_cr_01 width=100%}\n:::\n:::\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![Cambio anual del bosque tropical húmedo de Costa Rica.](bosque_tropical_humedo_cr_files/figure-html/fig-ac_cr_02-1.png){#fig-ac_cr_02 width=100%}\n:::\n:::\n\n\n\n\n\n\n\n\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](bosque_tropical_humedo_cr_files/figure-html/unnamed-chunk-18-1.png){width=672}\n:::\n:::\n\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](bosque_tropical_humedo_cr_files/figure-html/unnamed-chunk-19-1.png){width=672}\n:::\n:::\n\n\n\n\n\n",
+    "supporting": [
+      "bosque_tropical_humedo_cr_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

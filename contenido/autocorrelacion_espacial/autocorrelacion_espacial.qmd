@@ -1,0 +1,389 @@
+---
+title: "Autocerrelación espacial"
+
+author:
+  - name: Manuel Spínola
+    url: http://www.icomvis.una.ac.cr/index.php/manuel
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-7839-1908
+
+format:
+  html:
+    embed-resources: true
+
+date: "2025-06-09"
+
+toc: true
+toc-title: Tabla de contenido
+toc-location: right
+toc-depth: 4
+execute: 
+  echo: false
+  include: false
+citation: true
+
+bibliography: 
+  - references.bib
+  - grateful-refs.bib
+
+lang: es
+
+title-block-banner: "#f0f3f5"
+title-block-banner-color: "#0041C2"
+---
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(easystats)
+library(sf)
+library(sfdep)
+library(patchwork)
+library(gt)
+library(gtExtras)
+library(tibble)
+library(grateful)
+library(crgeo)
+```
+
+# 📍 Introducción: Explorando la Autocorrelación Espacial
+
+-   Cuando se analizan fenómenos geográficos —como la distribución de la pobreza, la incidencia de enfermedades o la calidad ambiental— es común preguntarse si los valores observados en una región están relacionados con los de sus regiones vecinas. Esta dependencia espacial se conoce como autocorrelación espacial @fig-esquema-autocorrelacion.
+
+```{r}
+#| include: true
+#| out-width: 100%
+#| label: fig-esquema-autocorrelacion
+#| fig.cap: "Ejemplos conceptuales de autocorrelación espacial. La autocorrelación positiva se observa cuando los valores similares (altos o bajos) están agrupados espacialmente. La autocorrelación negativa ocurre cuando valores disímiles están próximos entre sí, generando un patrón alternante. En ausencia de autocorrelación, los valores se distribuyen de forma aleatoria en el espacio, sin patrones evidentes."
+
+# Crear una grilla simple con valores para cada patrón
+make_grid <- function(vals) {
+  expand.grid(x = 1:4, y = 4:1) %>%
+    mutate(value = vals)
+}
+
+grid_pos <- make_grid(c(10,10,9,9,10,10,9,9,2,2,3,3,2,2,3,3))
+grid_neg <- make_grid(c(10,2,10,2,2,10,2,10,10,2,10,2,2,10,2,10))
+grid_rand <- make_grid(sample(1:10, 16, replace = TRUE))
+
+plot_pattern <- function(grid, title) {
+  ggplot(grid, aes(x, y, fill = value)) +
+    geom_tile(color = "white") +
+    scale_fill_viridis_c(option = "C") +
+    coord_fixed() +
+    labs(title = title) +
+    theme_void() +
+    theme(legend.position = "none")
+}
+
+library(patchwork)
+plot_pattern(grid_pos, "  Autocorrelación positiva") +
+plot_pattern(grid_neg, "  Autocorrelación negativa") +
+plot_pattern(grid_rand, "  Sin autocorrelación")
+```
+
+-   A diferencia de los análisis estadísticos tradicionales que asumen independencia entre observaciones, la autocorrelación espacial permite detectar agrupamientos o patrones geográficos. Para este propósito, se utilizan herramientas como los **Indicadores Locales de Asociación Espacial (LISA)**, que ayudan a identificar áreas donde existen agrupamientos estadísticamente significativos de valores altos o bajos.
+
+-   Uno de los LISA más utilizados es el **estadístico I de Moran local (Índice de Moran)**, que permite cuantificar la autocorrelación espacial para cada unidad geográfica por separado. Este indicador clasifica los resultados en patrones como High-High (zonas con valores altos rodeadas de otras zonas altas), Low-Low, High-Low, Low-High, y sin asociación significativa, permitiendo interpretar el comportamiento espacial de un fenómeno con mayor detalle.
+
+-   En este artículo, aplico el estadístico I de Moran local para analizar la distribución espacial el Índice de Pobreza Multidimensional a nivel cantonal en Costa Rica, que podría tener el objetivo de identificar patrones territoriales que puedan guiar decisiones informadas y políticas públicas más eficaces.
+
+```{r}
+cr <- cr_outline_c |>
+  st_transform(crs = 5367) |>
+  st_make_valid()
+```
+
+```{r}
+cr
+```
+
+```{r}
+c <- st_read("Cantones 84.json", crs = 5367) |>
+  st_make_valid()
+```
+
+```{r}
+c <- st_intersection(c, cr)
+```
+
+```{r}
+ipm <- data_read("indice_de_pobreza_multidimensional.xlsx", sheet = 4)
+```
+
+```{r}
+ipm$Cantón
+```
+
+```{r}
+ipm <- ipm |> separate_wider_delim(Cantón, delim = ": ", names = c("id", "canton")) |>
+  arrange(canton)
+```
+
+```{r}
+ipm$canton
+```
+
+```{r}
+c <- c |> rename(canton = CANTÓN) |>
+  arrange(canton)
+```
+
+```{r}
+c$canton
+```
+
+```{r}
+c <- left_join(c, ipm, by = "canton")
+```
+
+```{r}
+c
+```
+
+```{r}
+c <- c |>
+  select(canton, IPM, geometry)
+```
+
+```{r}
+#| include: true
+#| out-width: 100%
+#| label: fig-ipm
+#| fig.cap: "Mapa del Índice de Pobreza Multidimensional (IPM) en los cantones de Costa Rica para el año 2023"
+ggplot() +
+  geom_sf(data = c, aes(fill = IPM)) +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  labs(title = "Índice de Pobreza Multidimensional por Cantón en Costa Rica (2023)", 
+       fill = "IPM",
+       caption = "Fuente: PNUD (2023), Índice de pobreza multidimensional cantonal de Costa Rica.")
+```
+
+```{r}
+geo <- st_geometry(c)
+```
+
+```{r}
+nb <- st_contiguity(geo)
+```
+
+```{r}
+wt <- st_weights(nb)
+```
+
+```{r}
+st_nb_lag(nb, 2)
+```
+
+```{r}
+st_nb_lag_cumul(nb, 2)
+```
+
+```{r}
+c$IPM
+```
+
+```{r}
+h <- c %>%
+  mutate(nb = nb, wt = wt)
+```
+
+```{r}
+h
+```
+
+```{r}
+h |>
+  mutate(weighted_mean_lag = st_lag(c$IPM, nb, wt)) %>% 
+  ggplot(aes(fill = weighted_mean_lag)) + 
+  geom_sf(lwd = 0.2, color = "black") +
+  theme_void()
+```
+
+```{r}
+lisa <- h |>
+  mutate(moran = local_moran(IPM, nb, wt))
+```
+
+```{r}
+lisa$moran
+```
+
+```{r}
+pull(lisa, moran)
+```
+
+## Análisis de Autocorrelación Espacial según el Índie de Moran
+
+-   En un análisis LISA (Local Indicators of Spatial Association) con el Índice de Moran, las categorías: High-High, Low-Low, High-Low y Low-High indican el tipo de agrupamiento espacial (clústers espaciales) entre los valores de la variable y los valores de las áreas vecinas. Aquí te explico qué significa cada uno:
+
+🔴 High-High (Alto-Alto)
+
+-   Una zona tiene un valor alto de la variable (por ejemplo, pobreza, criminalidad, etc.).
+
+-   Y está rodeada de otras zonas que también tienen valores altos.
+
+-   👉 Es un cluster significativo de valores altos.
+
+------------------------------------------------------------------------
+
+🔵 Low-Low (Bajo-Bajo)
+
+-   Una zona tiene un valor bajo, y está rodeada de zonas con valores bajos.
+
+-   👉 Es un cluster significativo de valores bajos.
+
+------------------------------------------------------------------------
+
+🟡 High-Low (Alto-Bajo)
+
+-   Una zona con valor alto, rodeada de zonas con valores bajos.
+
+-   👉 Se interpreta como un outlier espacial o una zona atípica.
+
+------------------------------------------------------------------------
+
+🟢 Low-High (Bajo-Alto)
+
+-   Una zona con valor bajo, rodeada de zonas con valores altos.
+
+-   👉 También es un outlier espacial.
+
+------------------------------------------------------------------------
+
+⚪ No significativo
+
+-   No hay evidencia estadísticamente significativa de asociación espacial.
+
+-   La zona no pertenece a ningún cluster detectado.
+
+```{r}
+#| include: true
+#| label: tbl-descripcion-lisa
+#| tbl-cap: "Descripción de los Clústeres Espaciales según el Índice de Moran local"
+tibble(
+  Cluster = c(
+    "🔴 High-High", 
+    "🔵 Low-Low", 
+    "🟡 High-Low", 
+    "🟢 Low-High", 
+    "⚪ No significativo"
+  ),
+  Significado = c(
+    "Zona con valores altos rodeada de otras zonas con valores altos (clúster positivo)",
+    "Zona con valores bajos rodeada de otras zonas con valores bajos (clúster positivo)",
+    "Zona con valores altos rodeada de zonas con valores bajos (outlier)",
+    "Zona con valores bajos rodeada de zonas con valores altos (outlier)",
+    "No se detecta un patrón espacial significativo"
+  )
+) |>
+  gt() |>
+  cols_label(
+    Cluster = "Categoría",
+    Significado = "Significado"
+  ) |>
+  fmt_markdown(columns = everything())
+```
+
+```{r}
+lisa_colors <- c(
+  "High-High" = "red2",   # rojo fuerte
+  "Low-Low" = "blue3",     # azul fuerte
+  "High-Low" = "yellow2",    # naranja
+  "Low-High" = "green3",    # violeta
+  "No significativo" = "grey90"  # gris claro
+)
+```
+
+```{r}
+#| include: true
+#| out-width: 100%
+#| label: fig-lisa
+#| fig.cap: "Mapa de autocorrelación espacial del Índice de Pobreza Multidimensional (IPM) por Cantón en Costa Rica según el Índice de Morán local."
+lisa |> 
+  tidyr::unnest(moran) |> 
+  ggplot(aes(fill = pysal)) +
+  geom_sf() +
+  geom_sf(lwd = 0.2, color = "white") +
+  theme_minimal() +
+  scale_fill_manual(values = lisa_colors, na.translate = FALSE) +
+  labs(fill = "Autocorrelación\nLocal (LISA)",
+       title = "Mapa de Clústeres Espaciales según el I de Moran Local")
+```
+
+-   High-high and low-low = spatial clusters
+
+-   High-low and low-high = spatial outliers
+
+## Clústeres espaciales estadísticamente significativos (p \< 0.05) según el Índice de Moran
+
+```{r}
+lisa_unnested <- lisa |> unnest(moran)
+```
+
+```{r}
+lisa_unnested <- lisa_unnested |>
+  mutate(
+    cluster_sig = ifelse(p_ii_sim < 0.05, as.character(pysal), "No Significativo")
+  )
+```
+
+```{r}
+#| include: true
+#| out-width: 100%
+#| label: fig-lisa-clusters
+#| fig.cap: "Mapa de Clústeres del Índice de Pobreza Multidimensional (IPM) por Cantón en Costa Rica según el Índice de Moran local."
+
+ggplot(lisa_unnested) +
+  geom_sf(aes(fill = cluster_sig)) +
+  scale_fill_manual(values = c(
+    "High-High" = "red2",
+    "Low-Low" = "blue3",
+    "High-Low" = "yellow2",
+    "Low-High" = "green3",
+    "No Significativo" = "grey90"
+  )) +
+  theme_minimal() +
+  labs(
+    fill = "Tipo de Cluster \nEspacial"
+  )
+```
+
+```{r}
+#| include: true
+#| out-width: 100%
+#| label: tbl-lisa-ipm 
+#| tbl-cap: "Interpretación de clústeres espaciales según el Índice de Moran local para los valores de Índice de Pobreza Multidimensional (IPM) en cantones de Costa Rica."
+# Crear la tabla de significado
+tabla_lisa <- tribble(
+  ~Cluster,      ~Significado,
+  "🔴 High-High",   "Zonas muy pobres rodeadas de otras zonas pobres",
+  "🔵 Low-Low",     "Zonas poco pobres rodeadas de otras zonas poco pobres",
+  "🟡 High-Low",    "Zonas pobres rodeadas de zonas no pobres (outlier)",
+  "🟢 Low-High",    "Zonas no pobres rodeadas de zonas pobres (outlier)",
+  "⚪ No significativo",          "Sin patrón espacial claro"
+)
+
+# Mostrar como tabla gt
+tabla_lisa |> 
+  gt() |>
+  cols_label(
+    Cluster = "Clúster",
+    Significado = "Interpretación"
+  ) |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels(everything())
+  )
+```
+
+-   Los clústeres espaciales identificados por el Índice de Moran local revelan patrones significativos en la distribución del Índice de Pobreza Multidimensional (IPM) en Costa Rica. Las zonas con valores altos de IPM tienden a agruparse en la región Norte y Sureste del país, lo que sugiere que la pobreza multidimensional no es un fenómeno aislado, sino que se manifiesta en áreas específicas del país. Por otro lado, las zonas con valores bajos también forman un clúster en la región del Valle Central, indicando que hay regiones donde la pobreza multidimensional es menos prevalente.
+
+-   Para los gráficos y análisis usé R version 4.5.0 [@base] y los siguientes paquetes de R: tidyverse v. 2.0.0 [@tidyverse], sfdep v. 0.2.5 [@sfdep], easystats v. 0.7.0 [@easystats], gt v. 0.8.2 [@gt] y sf v 1.0.21 [@sf2018]. Los datos del Índice de Pobreza Multidimensional fueron obtenidos del Programa de las Naciones Unidas para el Desarrollo (PNUD) [@pnud2023ipm].
+
+```{r}
+cite_packages(output = "paragraph", out.dir = ".")
+```

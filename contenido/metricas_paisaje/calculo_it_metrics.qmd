@@ -1,0 +1,60 @@
+---
+title: "Métricas de complejidad del paisaje en Costa Rica"
+---
+
+```{r}
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(here)
+library(rio)
+library(sf)
+library(terra)
+library(tidyterra)
+library(landscapemetrics)
+library(motif)
+library(ggthemes)
+library(colorspace)
+library(RColorBrewer)
+library(here)
+library(ggthemes)
+library(ggpubr)
+library(kableExtra)
+library(crgeo)
+library(paisaje)
+```
+
+```{r}
+cr <- cr_outline_c
+```
+
+```{r}
+cr_lulc_cat <- rast("lulc/cr_lulc_cat.tif")
+```
+
+```{r}
+cr_lulc_cat <- project(cr_lulc_cat, "epsg:5367")
+```
+
+```{r}
+g_6 <- get_h3_grid(cr, resolution = 6) |>
+  st_transform(crs = 5367)
+```
+
+```{r}
+g_6_it <- calculate_it_metrics(cr_lulc_cat, g_6)
+```
+
+```{r}
+g_6_it
+```
+
+```{r}
+g_7 <- get_h3_grid(cr, resolution = 7) |>
+  st_transform(crs = 5367)
+```
+
+```{r}
+g_7_it <- calculate_it_metrics(cr_lulc_cat, g_7)
+```

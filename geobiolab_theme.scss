@@ -1,0 +1,81 @@
+/*-- scss:defaults --*/
+
+$navbar-bg: #6A994E;
+
+$navbar-fg: #FFFFFF;
+
+$sidebar-fg: #bc4749;
+
+$sidebar-bg: #f2e8cf;
+
+/*-- scss:rules --*/
+
+
+.quarto-title-banner {
+  background-color: #E0F7F9
+ !important; /* Tu color preferido */
+  color: #1A1A1A !important;              /* Color del texto */
+  text-align: center;                   /* Centrado */
+  padding: 2rem;
+}
+
+.quarto-title-banner h1,
+.quarto-title-banner h2,
+.quarto-title-banner p {
+  color: #1A1A1A !important;
+}
+
+.navbar {
+  height: 100px;
+  font-size: 20px; // Base font size for the entire navbar
+  font-family: 'Roboto', sans-serif; // Optional: Set the font family
+
+  .navbar-brand {
+    font-size: 30px; // Font size for the brand/logo
+    font-weight: normal; // Optional: Make the brand/logo bold
+  }
+}
+
+
+.navbar-logo {
+  max-height: 70px;
+}
+
+
+/* Apply Roboto font to the sidebar and links */
+.sidebar-item {
+  font-family: 'Roboto', Arial, sans-serif; /* Apply Roboto font */
+  padding: 8px; /* Add spacing for better UI */
+}
+
+/* Apply styles for sidebar link text */
+.sidebar-item-text.sidebar-link.text-start {
+  font-family: 'Roboto', Arial, sans-serif; /* Apply Roboto font */
+  font-size: 16px; /* Default font size */
+  font-weight: bold; /* Bold text for emphasis */
+  color: #333; /* Dark gray for readability */
+  text-decoration: none; /* Remove underline from links */
+  transition: color 0.3s ease; /* Smooth color change on hover */
+}
+
+/* General styles for all links in the sidebar navigation */
+.sidebar-navigation a {
+    color: #B71234; /* Default link color */
+    text-decoration: none; /* Remove underline */
+    font-size: 15px; /* Adjust font size */
+    font-weight: bold; /* Make links bold */
+    display: block; /* Make links block-level for better spacing */
+    padding: 0px 0px; /* Add padding for clickability */
+    transition: color 0.3s ease, text-decoration 0.3s ease; /* Smooth transitions */
+}
+
+/* Hover effect */
+.sidebar-navigation a:hover {
+    color: #0000ff; /* Darker color on hover */
+    text-decoration: underline; /* Add underline on hover */
+}
+
+.sidebar nav[role="doc-toc"] ul > li > a.active {
+    color: #B71234 !important;
+}
+

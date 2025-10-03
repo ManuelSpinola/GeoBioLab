@@ -1,0 +1,276 @@
+---
+title: "Untitled"
+---
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(sf)
+library(terra)
+library(stars)
+library(biscale)
+library(rayshader)
+library(elevatr)
+library(cowplot)
+library(crgeo)
+```
+
+```{r}
+target_crs <- "EPSG:5367"
+```
+
+```{r}
+cr <- cr_outline_c |>
+  st_transform(target_crs)
+```
+
+```{r}
+bio_stars <- cr_bio_c
+```
+
+```{r}
+bio <- rast(bio_stars)
+```
+
+```{r}
+t <- bio[[1]]
+```
+
+```{r}
+p <- bio[[12]]
+```
+
+```{r}
+t
+```
+
+```{r}
+plot(p)
+```
+
+```{r}
+temp_prec <- c(t, p) |>
+  project(target_crs)
+```
+
+```{r}
+temp_prec <- temp_prec |>
+  crop(cr, mask = TRUE)
+```
+
+```{r}
+names(temp_prec) <- c("temperature", "precipitation")
+```
+
+```{r}
+plot(temp_prec)
+```
+
+```{r}
+e <- cr_elevation_c |>
+  rast()
+```
+
+```{r}
+e_b <- get_elev_raster(cr, z = 10) |>
+  rast() |>
+  crop(cr, mask = TRUE)
+```
+
+```{r}
+e_b <- project(e_b, target_crs)
+```
+
+```{r}
+e_b
+```
+
+```{r}
+plot(e_b)
+```
+
+```{r}
+temp_prec_resample <- terra::resample(temp_prec, e_b, method = "bilinear")
+```
+
+```{r}
+plot(temp_prec_resample)
+```
+
+```{r}
+temp_prec_resample
+```
+
+```{r}
+temp_prec_df <- as.data.frame(temp_prec_resample, xy = TRUE)
+```
+
+```{r}
+breaks <- biscale::bi_class(
+  temp_prec_df,
+  x = temperature,
+  y = precipitation,
+  style = "fisher",
+  dim = 3
+)
+```
+
+```{r}
+breaks
+```
+
+```{r}
+theme_for_the_win <- function(){
+    theme_minimal() +
+    theme(
+        axis.title = element_blank(),
+        plot.background = element_rect(
+            fill = "white", color = NA
+        ),
+        plot.title = element_text(
+            color = "grey10", hjust = .5,
+            face = "bold", vjust = -1
+        ),
+        plot.subtitle = element_text(
+            hjust = .5, vjust = -1
+        ),
+        plot.caption = element_text(
+            size = 9, color = "grey20",
+            hjust = .5, vjust = 1
+        ),
+        plot.margin = unit(c(0, 0, 0, 0), "lines"
+        )
+    )
+}
+```
+
+```{r}
+map <- ggplot(breaks) +
+    geom_raster(
+        aes(x = x, y = y, fill = bi_class), 
+        show.legend = FALSE # FALSE
+    ) +
+    biscale::bi_scale_fill(
+        pal = "GrPink2", 
+        dim = 3
+    ) +
+    labs(
+        title = "Costa Rica: Temperatura Media Anual y Precipitación Anual",
+        caption = "Fuente: BIOCLIM | Autor: Manuel Spínola - ICOMVIS - UNA",
+        x = "", y = ""
+    ) +
+  coord_sf(crs = target_crs) +
+  theme_for_the_win() +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank())
+map
+```
+
+```{r}
+legend <- biscale::bi_legend(
+    pal = "GrPink2",
+    dim = 3,
+    xlab = "Temperatura (°C)",
+    ylab = "Precipitación (mm)",
+    size = 8
+)
+```
+
+```{r}
+## construct final map
+# combine map with legend
+final_map <- ggdraw() +
+  draw_plot(plot = map, 
+            x = 0, 
+            y = 0, 
+            width = 1, 
+            height = 1) +
+  draw_plot(plot = legend, 
+            x = 0.2, 
+            y = 0.15, 
+            width = 0.3, 
+            height = 0.3)
+final_map
+```
+
+```{r}
+ggsave("mapa_2d.png", dpi = 600, bg = "white", final_map)
+```
+
+```{r}
+e_b_df <- e_b |>
+  as.data.frame(xy = TRUE, na.rm = TRUE)
+```
+
+```{r}
+names(e_b_df)[3] <- "dem"
+```
+
+```{r}
+e_b_df
+```
+
+```{r}
+dem_map <- ggplot(
+    e_b_df, aes(x = x, y = y, fill = dem)
+) +
+geom_raster() +
+scale_fill_gradientn(colors = "white") +
+guides(fill = "none") +
+labs(
+  title = "Costa Rica: Temperatura Media Anual y Precipitación Anual",
+  caption = "Fuente: BIOCLIM | Autor: Manuel Spínola - ICOMVIS - UNA"
+) +
+  coord_sf(crs = target_crs) +theme_for_the_win() +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text.y = element_blank())
+dem_map
+```
+
+```{r}
+plot_gg(ggobj = final_map,
+        ggobj_height = dem_map,
+        width = 7,
+        height = 7,
+        windowsize = c(600, 600),
+        scale = 100,
+        shadow = TRUE,
+        shadow_intensity = 1,
+        phi = 87, theta = 0, zoom = 0.56,
+        multicore = TRUE)
+```
+
+```{r}
+# zoom out
+rayshader::render_camera(zoom = .6)
+```
+
+```{r}
+url <- "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/brown_photostudio_02_4k.hdr"
+hdri_file <- basename(url)
+```
+
+```{r}
+download.file(
+    url = url,
+    destfile = hdri_file,
+    mode = "wb"
+)
+```
+
+```{r}
+# 10. RENDER 3D OBJECT
+rayshader::render_highquality(
+    filename = "mapa_3d.png",
+    preview = TRUE,
+    light = FALSE,
+    environment_light = hdri_file,
+    intensity = 1,
+    rotate_env = 90,
+    parallel = TRUE,
+    width = 2000, height = 2000,
+    interactive = FALSE
+)
+```

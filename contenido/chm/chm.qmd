@@ -1,0 +1,95 @@
+---
+title: "Mapa de la altura del dosel de los bosques de Costa Rica con una resolución de 1m"
+subtitle: En esta sección se mapea la altura de los árboles de Costa Rica
+
+author:
+  - name: "Manuel Spínola"
+    url: http://www.icomvis.una.ac.cr/index.php/manuel
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-7839-1908
+
+format:
+  html:
+    embed-resources: true
+
+date: "2025-02-11"
+citation: true
+toc: true
+toc-title: Tabla de contenido
+toc-location: right
+toc-depth: 4
+bibliography: references.bib
+lang: es
+
+execute: 
+  echo: false
+  include: false
+
+draft: false
+categories:
+  - "Análisis del paisaje"
+---
+
+```{r}
+library(tidyverse)
+library(sf)
+library(terra)
+library(tidyterra)
+library(crgeo)
+```
+
+```{r}
+cr <- cr_outline_c
+```
+
+```{r}
+chm <- rast("cr_chm.tif")
+```
+
+# Explorando la altura del dosel de los bosques de Costa Rica con datos de alta resolución (1m)
+
+Los avances en la teledetección han revolucionado nuestra capacidad para estudiar los ecosistemas a gran escala con un nivel de detalle sin precedentes. Un ejemplo de esta tecnología es el modelo de altura del dosel (CHM, por sus siglas en inglés) derivado de datos de alta resolución (1m) proporcionados por Meta y el Instituto de Recursos Mundiales (WRI) @Tolan2024. En este blog, exploraremos qué significan estos datos y cómo podemos interpretar el mapa de la altura del dosel de los bosques de Costa Rica.
+
+¿Qué es un Modelo de Altura del Dosel (CHM)?
+
+Un CHM es una representación de la altura de la vegetación sobre el nivel del suelo. Se obtiene restando el modelo digital del terreno (DTM), que representa la elevación del suelo, del modelo digital de superficie (DSM), que incluye la altura de todos los objetos sobre el suelo, como edificios y árboles. El resultado es una capa geoespacial que muestra únicamente la altura de la vegetación.
+
+Estos datos son cruciales para entender la estructura de los bosques, evaluar la biodiversidad y desarrollar estrategias de conservación y gestión forestal. Con una resolución de 1 metro, el CHM de Costa Rica proporciona una visión detallada de la distribución de la altura de los árboles en todo el país.
+
+Interpretación del Mapa
+
+El mapa presentado muestra la altura de los árboles en Costa Rica utilizando una escala de colores que varía entre tonos verdes y amarillos. En general:
+
+Las áreas en amarillo representan regiones con árboles más bajos o ausencia de vegetación alta, como pastizales, tierras agrícolas y zonas urbanizadas.
+
+Las áreas en verde oscuro indican bosques con dosel alto, característicos de ecosistemas maduros como los bosques nubosos y bosques menos intervenidos.
+
+Este tipo de visualización permite identificar patrones espaciales en la cobertura forestal, evaluar la fragmentación de los bosques y priorizar áreas para conservación. Por ejemplo, se pueden notar corredores de vegetación conectando fragmentos de bosque, fundamentales para la movilidad de especies silvestres.
+
+Aplicaciones y Beneficios
+
+El uso de CHM de alta resolución tiene múltiples aplicaciones, incluyendo:
+
+Conservación y monitoreo de bosques: Permite evaluar la pérdida o recuperación del dosel forestal con gran precisión.
+
+Estudios de biodiversidad: La altura de los árboles está correlacionada con la biodiversidad y la disponibilidad de hábitat para muchas especies.
+
+Gestión del carbono: Los datos de altura pueden ayudar a estimar el almacenamiento de carbono en los bosques, un factor clave en la lucha contra el cambio climático.
+
+```{r}
+#| message: false
+#| include: true
+#| label: fig-chm
+#| fig-cap: Altura de los árboles en Costa Rica de 1 m de resolución, 2024.
+ggplot() +
+  theme_minimal() +
+  geom_spatraster(data = chm) +
+  scale_fill_viridis_c(name = "Altura del dosel", option = "D", direction = -1, na.value = "transparent")
+```
+
+# Conclusión
+
+El mapa del dosel de los bosques de Costa Rica basado con datos de alta resolución es una herramienta muy valiosa para científicos y tomadores de decisiones. Al aprovechar esta información, podemos mejorar la gestión de los ecosistemas, diseñar estrategias de conservación más efectivas y comprender mejor la dinámica de los bosques tropicales.
+
+Este tipo de datos abre nuevas oportunidades para el análisis ambiental y refuerza la importancia de la tecnología en la protección de la biodiversidad.

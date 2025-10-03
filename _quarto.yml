@@ -1,0 +1,105 @@
+project:
+  type: website
+  render: 
+    - "*.qmd"
+    - "!contenido/diversidad_funcional/traits/"
+    - "!contenido/diversidad_funcional/aves/aves_analisis/"
+    - "!contenido/diversidad_funcional/aves/aves_vectores_resultados/"
+    - "!contenido/mammals/"
+    - "!contenido/metricas_paisaje/calculo_it_metrics.qmd"
+    - "!contenido/red_list_cr/"
+    - "!contenido/bivariate_map/bivariate_map.qmd"
+    - "!contenido/caret_sdm/"
+    - "!contenido/choose_gcm/"
+
+website:
+  title: "GeoBioLab"
+  site-url: https://icomvis-geobiolab.netlify.app
+  page-footer:
+    left: |
+      Una iniciativa del ICOMVIS  
+      ![](/logos/logo_icomvis_circular.png){fig-alt="ICOMVIS" width=45px}
+    right: |
+      Universidad Nacional, Costa Rica  
+      ![](/logos/logo_UNA.jpg){fig-alt="UNA" width=65px}
+  
+  navbar:
+    left:
+      - text: Inicio
+        href: index.qmd
+      - text: Acerca de GeoBioLab
+        href: about.qmd
+    right:
+      - text: Software desarrollado por GeoBioLab
+        href: software/software.qmd
+
+  sidebar:
+      style: "docked"
+      search: true
+      background: light
+      logo: logos/GeoBioLab_perezoso_recortado.png
+      contents:
+        - section: "Fundamentos"
+          contents:
+            - text: "Autocorrelación espacial"
+              href: contenido/autocorrelacion_espacial/autocorrelacion_espacial.qmd
+            - text: "---"
+        
+        - section: "Variables socio-ambientales"
+          contents:
+            - text: "Cobertura y uso del suelo en Costa Rica"
+              href: contenido/lulc/lulc_cr_2021.qmd
+            - text: "---"  
+            - text: "Indice de Riqueza Relativa en Costa Rica"
+              href: contenido/cr_relative_wealth_index/cr_rwi.qmd
+            - text: "---"
+            - text: "Densidad de población humana en Costa Rica"
+              href: contenido/densidad_pob/densidad_pob.qmd
+      
+        - section: "Aplicaciones ecológicas"
+          contents:
+ 
+            - text: "Diversidad funcional de aves en Costa Rica"
+              href: contenido/diversidad_funcional/aves/fd_aves.qmd
+            - text: "---"
+
+            - text: "Cambios en los ecosistemas terrestres en Costa Rica para el 2050"
+              href: contenido/wte_2050_projections/wte_2050.qmd
+            - text: "---"
+ 
+            - text: "Métricas de complejidad del Paisaje en Costa Rica"
+              href: contenido/metricas_paisaje/metricas_del_paisaje.qmd
+            - text: "---"
+
+            - text: "Altura del dosel de los bosques en Costa Rica"
+              href: contenido/chm/chm.qmd
+            - text: "---"
+        
+            - text: "Bosque Tropical Húmedo en Costa Rica"
+              href: contenido/jtc_tropical_moist_forests/bosque_tropical_humedo_cr.qmd
+            - text: "---"
+        
+        - section: "Visualización Espacial"
+          contents:
+          
+            - text: "Mapas Bivariados"
+              href: contenido/bivariate_map/contenido_bivariate_map.qmd
+            - text: "---"
+
+
+
+format:
+  html:
+    theme:
+      - cosmos
+      - geobiolab_theme.scss
+    toc: true
+    grid:
+      sidebar-width: 300px
+      body-width: 900px
+      margin-width: 300px
+      gutter-width: 1.5rem
+
+editor: visual
+lang: es
+

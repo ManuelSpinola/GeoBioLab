@@ -1,0 +1,209 @@
+---
+title: "Untitled"
+
+draft: true
+---
+
+```{r}
+library(tidyverse)
+library(caretSDM)
+library(chooseGCM)
+library(terra)
+library(sf)
+library(stars)
+```
+
+```{r}
+occ <- GBIF_data(c("Araucaria angustifolia"), as_df = TRUE)
+```
+
+```{r}
+occ
+```
+
+```{r}
+# Download current bioclimatic variables
+WorldClim_data(path = NULL, 
+               period = "current", 
+               variable = "bioc", 
+               resolution = 10)
+```
+
+```{r}
+# Import current bioclimatic variables to R
+bioc <- read_stars(list.files("input_data/WorldClim_data_current/", full.names = T), along = "band", normalize_path = F)
+```
+
+```{r}
+bioc
+```
+
+```{r}
+parana
+```
+
+```{r}
+sa <- sdm_area(parana, 
+               cell_size = 25000, 
+               crs = 6933, 
+               variables_selected = NULL,
+               gdal = TRUE, 
+               crop_by = NULL, 
+               lines_as_sdm_area = FALSE)
+sa
+```
+
+```{r}
+plot_grid(sa)
+```
+
+```{r}
+sa <- add_predictors(sa, 
+                     bioc, 
+                     variables_selected = NULL, 
+                     gdal = TRUE)
+sa
+```
+
+```{r}
+add_scenarios(sa)
+```
+
+```{r}
+WorldClim_data(path = NULL, 
+               period = "future", 
+               variable = "bioc",
+               year = "2090",
+               gcm = c("ca", "mi"),
+               ssp = c("245","585"),
+               resolution = 10)
+```
+
+```{r}
+scen <- read_stars(list.files("input_data/WorldClim_data_future/", full.names = T), along = "band", normalize_path = F)
+```
+
+```{r}
+sa <- add_scenarios(sa, 
+                    scen = scen, 
+                    scenarios_names = NULL,
+                    pred_as_scen = TRUE,
+                    variables_selected = NULL, 
+                    stationary = NULL)
+sa
+```
+
+```{r}
+oc <- occurrences_sdm(occ, crs = 6933)
+oc
+```
+
+```{r}
+plot_occurrences(oc)
+```
+
+```{r}
+oc <- join_area(oc, sa)
+```
+
+```{r}
+i <- input_sdm(oc, sa)
+i
+```
+
+```{r}
+i <- data_clean(i,
+                capitals = TRUE,
+                centroids = TRUE,
+                duplicated = TRUE,
+                identical = TRUE,
+                institutions = TRUE,
+                invalid = TRUE,
+                terrestrial = TRUE)
+```
+
+```{r}
+i <- vif_predictors(i, 
+                    th = 0.5, 
+                    maxobservations = 5000, 
+                    variables_selected = NULL)
+```
+
+```{r}
+i
+```
+
+```{r}
+i <- pseudoabsences(i, 
+                    method = "bioclim", 
+                    n_set = 10,
+                    n_pa = NULL,
+                    th = 0) 
+i
+```
+
+```{r}
+ctrl_sdm <- caret::trainControl(method = "repeatedcv", 
+                                number = 4, 
+                                repeats = 1, 
+                                classProbs = TRUE,
+                                returnResamp = "all", 
+                                summaryFunction = summary_sdm, 
+                                savePredictions = "all")
+```
+
+```{r}
+t <- train_sdm(i, 
+               algo = c("naive_bayes", "kknn"), 
+               variables_selected = "vif", 
+               ctrl=ctrl_sdm) |> suppressWarnings()
+t
+```
+
+```{r}
+varImp_sdm(t)
+```
+
+```{r}
+pdp_sdm(t)
+```
+
+```{r}
+p <- predict_sdm(t,
+                 metric = "ROC",
+                 th = 0.9,
+                 tp = "prob",
+                 ensembles = TRUE)
+p
+```
+
+```{r}
+get_validation_metrics(p)
+```
+
+```{r}
+mean_validation_metrics(p)
+```
+
+```{r}
+g <- gcms_ensembles(p, gcms = c("ca", "mi"))
+g
+```
+
+```{r}
+plot_predictions(p,
+                 spp_name = NULL,
+                 scenario = "current",
+                 id = NULL,
+                 ensemble = TRUE,
+                 ensemble_type = "mean_occ_prob")
+```
+
+```{r}
+plot_predictions(p,
+                 spp_name = NULL,
+                 scenario = "_ssp245_2090",
+                 id = NULL,
+                 ensemble = TRUE,
+                 ensemble_type = "mean_occ_prob")
+```

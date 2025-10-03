@@ -1,0 +1,275 @@
+---
+title: "Diversidad funcional de Aves en Costa Rica"
+
+author:
+  - name: Manuel Spínola
+    url: http://www.icomvis.una.ac.cr/index.php/manuel
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-7839-1908
+  
+  - name: Natalie Sánchez
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-2105-1777
+
+
+
+format:
+  html:
+    embed-resources: true
+
+date: "2025-01-10"
+
+toc: true
+toc-title: Tabla de contenido
+toc-location: right
+toc-depth: 4
+execute: 
+  echo: false
+  include: false
+citation: true
+lang: es
+title-block-banner: "#f0f3f5"
+title-block-banner-color: "#0041C2"
+---
+
+```{r}
+library(tidyverse)
+library(easystats)
+library(here)
+library(janitor)
+library(glue)
+library(sf)
+library(stars)
+library(terra)
+library(tidyterra)
+library(fundiversity)
+library(FD)
+library(mFD)
+library(traits)
+library(traitdata)
+library(TR8)
+library(rtry)
+library(traits.build)
+library(GIFT)
+library(funbiogeo)
+library(funspace)
+library(biodivMapR)
+library(traitstrap)
+library(BIEN)
+library(traitdata)
+library(letsR)
+library(vroom)
+library(tidysdm)
+library(CAST)
+library(caret)
+library(DALEX)
+library(ingredients)
+library(ggnewscale)
+library(crgeo)
+library(paisaje)
+```
+
+
+# Introducción
+
+La [**diversidad funcional**]{.red3} en ecología es un concepto que mide las diferencias en los rasgos funcionales entre las especies de una comunidad, en lugar de simplemente contar el número de especies presentes. Se centra en las funciones ecológicas que las especies desempeñan en un ecosistema, como la captura de recursos, la producción de biomasa, la polinización o el ciclo de nutrientes.
+
+------------------------------------------------------------------------
+
+### [Rasgos funcionales:]{.blue}
+
+Los rasgos funcionales son características de los organismos que influyen en su desempeño ecológico, como:
+
+-   Rasgos morfológicos: Tamaño de las hojas, altura de las plantas, forma del cuerpo.
+
+-   Rasgos fisiológicos: Tasa de fotosíntesis, tolerancia a la sequía.
+
+-   Rasgos ecológicos: Hábitos alimenticios, dispersión de semillas, uso del hábitat.
+
+------------------------------------------------------------------------
+
+### [Componentes principales de la diversidad funcional:]{.blue}
+
+1.  Riqueza funcional (Functional Richness, FRic):
+
+-   Mide el espacio ocupado por las especies en el “espacio funcional” definido por sus rasgos.
+-   Cuanto mayor es la riqueza funcional, mayor es la variedad de estrategias ecológicas en la comunidad.
+
+2.  Equitatividad funcional (Functional Evenness, FEve):
+
+-   Evalúa qué tan uniformemente están distribuidas las especies en el espacio funcional.
+
+3.  Divergencia funcional (Functional Divergence, FDiv):
+
+-   Indica si las especies se agrupan hacia los extremos del espacio funcional, lo que sugiere una mayor especialización y uso complementario de recursos.
+
+4.  Redundancia funcional:
+
+-   Evalúa si varias especies desempeñan funciones similares en el ecosistema, lo que puede aumentar la resiliencia ante perturbaciones.
+
+5.  Originalidad funcional:
+
+-   Identifica especies con rasgos únicos que no son compartidos por otras en la comunidad.
+
+------------------------------------------------------------------------
+
+### [Importancia de la diversidad funcional:]{.blue}
+
+1.  Estabilidad del ecosistema: Una mayor diversidad funcional puede aumentar la estabilidad y resiliencia del ecosistema frente a perturbaciones, ya que diferentes especies desempeñan funciones complementarias.
+
+2.  Eficiencia en el uso de recursos: Las comunidades con alta diversidad funcional suelen aprovechar los recursos de manera más eficiente, lo que reduce la competencia.
+
+3.  Conservación y manejo: Permite identificar especies clave para el mantenimiento de las funciones del ecosistema, como especies ingenieras o facilitadoras.
+
+4.  Impacto de la pérdida de especies: Ayuda a evaluar cómo la extinción de especies podría afectar las funciones ecosistémicas, dependiendo de si las especies extintas eran funcionalmente redundantes o únicas.
+
+#### [Ejemplo práctico:]{.red3}
+
+En un ecosistema de pastizales:
+
+-   Si todas las plantas tienen rasgos similares (e.g., raíces superficiales), la diversidad funcional será baja, lo que puede limitar la capacidad del ecosistema para resistir la sequía.
+
+-   Si hay plantas con raíces profundas y otras con raíces superficiales, se incrementa la diversidad funcional, porque diferentes especies cumplen funciones complementarias (acceso a agua a distintas profundidades).
+
+------------------------------------------------------------------------
+
+### [Métodos para medir la diversidad funcional:]{.blue}
+
+En ecología, se utilizan herramientas estadísticas para calcular índices de diversidad funcional basados en matrices de rasgos y abundancia de especies. Algunos enfoques comunes incluyen:
+
+-   Análisis de distancias funcionales (e.g., Gower, Euclídeas).
+
+-   Construcción de espacios funcionales utilizando técnicas como PCA o PCoA.
+
+-   Cálculo de índices como FRic, FEve y FDiv.
+
+[En sintesis:]{.red3}
+
+La diversidad funcional va más allá de contar especies: mide cómo las diferencias en los rasgos ecológicos influyen en las funciones del ecosistema, siendo clave para entender su funcionamiento, resiliencia y respuesta a los cambios ambientales.
+
+
+# Diversidad funcional de Aves en Costa Rica
+
+```{r}
+aves_frich <- st_read("aves_vectores_resultados/fric_prediction_6_cast.gpkg")
+```
+
+```{r}
+aves_fdiv <- st_read("aves_vectores_resultados/fdiv_prediction_6_cast.gpkg")
+```
+
+```{r}
+aves_feve <- st_read("aves_vectores_resultados/feve_prediction_6_cast.gpkg")
+```
+
+### 1. Riqueza funcional (Functional Richness, FRic):
+
+La riqueza funcional mide la amplitud del espacio funcional ocupado por las especies de una comunidad en función de sus rasgos funcionales. Es un indicador de la variedad de estrategias funcionales presentes en un ecosistema.
+
+-   Definición:
+
+Es el volumen del espacio funcional (definido por los rasgos funcionales) ocupado por las especies presentes. Cuanto mayor sea el espacio funcional ocupado, mayor será la riqueza funcional.
+
+-   Interpretación ecológica:
+
+    -   Comunidades con alta riqueza funcional tienen una mayor variedad de estrategias para realizar funciones ecosistémicas.
+    -   Una baja riqueza funcional indica que las especies presentes comparten estrategias similares o no explotan completamente el espacio funcional disponible.
+
+-   Ejemplo práctico:
+
+En una comunidad de aves, si hay especies con diferentes tamaños de picos, masas corporales y formas de picos, la riqueza funcional será alta porque se utilizan múltiples nichos funcionales.
+
+### Mapa de la riqueza funcional de aves en Costa Rica
+
+```{r}
+#| include: true
+#| out-width: 100%
+#| label: fig-fric_aves
+#| fig-cap: Riqueza funcional de aves en Costa Rica.
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = aves_frich, aes(fill = f_rich), linewidth = 0.001) +
+  scale_fill_viridis_c(name = "Riqueza \nfuncional", option = "B", direction = -1)
+```
+
+La @fig-fric_aves muestra la riqueza funcional en Costa Rica, representada mediante un mapa de calor hexagonal. La riqueza funcional está codificada por colores, con una escala que va desde el amarillo (baja riqueza funcional) hasta el morado (alta riqueza funcional). Los valores van desde valores menores a 0.04 hasta 0.16.
+
+En términos de interpretación, se puede observar que las áreas con mayor riqueza funcional (colores más oscuros) se encuentran principalmente en la región noroeste y en algunas áreas costeras del país. Las áreas con menor riqueza funcional (colores más claros) están distribuidas de manera más uniforme en el centro y el este del país. Esto sugiere que hay una variabilidad espacial significativa en la riqueza funcional a lo largo de Costa Rica, con ciertas regiones que presentan una mayor diversidad funcional que otras.
+
+### 2. Divergencia funcional (Functional Divergence, FDiv):
+
+La divergencia funcional mide qué tan concentradas están las especies (y sus abundancias) en los extremos del espacio funcional, en lugar de cerca del centro.
+
+-   Definición: Evalúa si las especies más abundantes están distribuidas en los bordes del espacio funcional, ocupando posiciones extremas. Una alta divergencia funcional indica una especialización funcional, donde las especies más abundantes tienen rasgos muy diferentes.
+
+-   Interpretación ecológica:
+
+    -   Una alta divergencia funcional puede indicar complementariedad en el uso de recursos y mayor eficiencia ecosistémica.
+    -   Una baja divergencia funcional sugiere que las especies están más agrupadas funcionalmente, lo que puede aumentar la competencia.
+
+-   Ejemplo práctico:
+
+En una comunidad de aves, si las especies más abundantes tienen tamaños de pico extremos (muy grandes o muy pequeños) para acceder a diferentes tipos de alimentos, la divergencia funcional será alta.
+
+```{r}
+#| include: true
+#| out-width: 100%
+#| label: fig-fdiv_aves
+#| fig-cap: Divergencia funcional de aves en Costa Rica.
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = aves_fdiv, aes(fill = f_div), linewidth = 0.001) +
+  scale_fill_viridis_c(name = "Divergencia \nfuncional", option = "B", direction = -1)
+```
+
+La @fig-fdiv_aves muestra la riqueza funcional en Costa Rica, representada mediante un mapa de calor hexagonal, representada por una escala de colores que va del negro (0.76) al amarillo (0.70). La divergencia funcional es una medida de la variabilidad en las funciones ecológicas de las especies en un área determinada. En el mapa, se observa que las áreas con mayor divergencia funcional (colores más oscuros) están distribuidas de manera heterogénea a lo largo del país, con concentraciones notables en ciertas regiones del norte y centro. Las áreas con menor divergencia funcional (colores más claros) se encuentran dispersas, especialmente en la región sur y algunas partes del este. Esto sugiere que hay una variabilidad significativa en las funciones ecológicas de las especies en diferentes partes de Costa Rica, lo cual puede ser relevante para la conservación y manejo de la biodiversidad en el país.
+
+### 3. Equitatividad funcional (Functional Evenness, FEve):
+
+La equitatividad funcional mide qué tan uniformemente están distribuidas las especies (y sus abundancias) dentro del espacio funcional.
+
+-   Definición: Es la uniformidad en la distribución de las especies dentro del espacio funcional, considerando tanto su posición como su abundancia. Una alta equitatividad funcional indica que las especies llenan el espacio funcional de manera uniforme.
+
+-   Interpretación ecológica:
+
+    -   Una alta equitatividad funcional sugiere un uso equilibrado de los recursos disponibles en el ecosistema.
+    -   Una baja equitatividad funcional indica que algunas partes del espacio funcional están infrautilizadas, lo que puede reflejar la ausencia de ciertas funciones.
+
+-   Ejemplo práctico:
+
+En una comunidad de aves, si las especies están distribuidas uniformemente en función de sus tamaños y dietas, la equitatividad funcional será alta. Si la mayoría de las especies tienen tamaños similares, la equitatividad funcional será baja.
+
+```{r}
+#| include: true
+#| out-width: 100%
+#| label: fig-feve_aves
+#| fig-cap: Equitatividad funcional de aves en Costa Rica.
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = aves_feve, aes(fill = f_eve), linewidth = 0.001) +
+  scale_fill_viridis_c(name = "Equitatividad \nfuncional", option = "B", direction = -1)
+```
+
+La @fig-feve_aves muestra la equitatividad funcional en Costa Rica, representada mediante un gráfico de celdas hexagonales. La equitatividad funcional se mide en una escala de colores que va del amarillo (0.60) al morado oscuro (0.68). En el mapa, se observa que las áreas con mayor equitatividad funcional (colores más oscuros) se encuentran principalmente en el noroeste y algunas partes del centro del país. Las áreas con menor equitatividad funcional (colores más claros) se distribuyen de manera más dispersa, pero se concentran en el sur y algunas partes del este. Esto sugiere que hay variaciones significativas en la equitatividad funcional a lo largo del país, lo cual puede ser relevante para estudios de biodiversidad, conservación y manejo de recursos naturales.
+
+**Comparación Resumida:**
+
+| Métrica | Qué mide? | Alta | Baja |
+|------------------|------------------|------------------|------------------|
+| **Riqueza funcional** | Amplitud del espacio funcional ocupado por las especies. | Gran variedad de estrategias funcionales | Estrategias funcionales similares o infrautilización del espacio funcional. |
+| **Divergencia funcional** | Concentración de especies en los extremos del espacio funcional | Especialización funcional y complementación de recursos | Agrupación funcional y mayor competencia |
+| **Equitatividad funcional** | Uniformidad en la distribución de especies dentro del espacio funcional | Uso equilibrado del espacio funcional y recursos | Algunas áreas funcionales están infrautilizadas |
+
+### Aplicaciones en Ecología:
+
+Estas métricas son útiles para:
+
+1.  Evaluar la funcionalidad del ecosistema: Identificando si el ecosistema está aprovechando al máximo los recursos disponibles.
+
+2.  Estudiar los efectos de las perturbaciones: Como la pérdida de especies o el cambio climático, en la diversidad funcional.
+
+3.  Diseñar estrategias de conservación: Manteniendo especies clave que ocupan posiciones funcionales importantes en el ecosistema.
+
+Cada métrica complementa a las demás, proporcionando una visión más completa de cómo las especies contribuyen a la funcionalidad del ecosistema.

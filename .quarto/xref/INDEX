@@ -1,0 +1,44 @@
+{
+  "index.qmd": {
+    "index.html": "c97ae6e7"
+  },
+  "about.qmd": {
+    "about.html": "aae79eac"
+  },
+  "contenido/autocorrelacion_espacial/autocorrelacion_espacial.qmd": {
+    "autocorrelacion_espacial.html": "3c9f7c55"
+  },
+  "contenido/bivariate_map/bivariate_map.qmd": {
+    "bivariate_map.html": "aac97aa9"
+  },
+  "contenido/bivariate_map/contenido_bivariate_map.qmd": {
+    "contenido_bivariate_map.html": "1e7e3961"
+  },
+  "contenido/chm/chm.qmd": {
+    "chm.html": "764616b3"
+  },
+  "contenido/cr_relative_wealth_index/cr_rwi.qmd": {
+    "cr_rwi.html": "1741584c"
+  },
+  "contenido/densidad_pob/densidad_pob.qmd": {
+    "densidad_pob.html": "9b8ddc7c"
+  },
+  "contenido/diversidad_funcional/aves/fd_aves.qmd": {
+    "fd_aves.html": "1f44937e"
+  },
+  "contenido/jtc_tropical_moist_forests/bosque_tropical_humedo_cr.qmd": {
+    "bosque_tropical_humedo_cr.html": "eac0af11"
+  },
+  "contenido/lulc/lulc_cr_2021.qmd": {
+    "lulc_cr_2021.html": "7da4e3ee"
+  },
+  "contenido/metricas_paisaje/metricas_del_paisaje.qmd": {
+    "metricas_del_paisaje.html": "e24b363d"
+  },
+  "contenido/wte_2050_projections/wte_2050.qmd": {
+    "wte_2050.html": "564cda5f"
+  },
+  "software/software.qmd": {
+    "software.html": "39bb0fb9"
+  }
+}

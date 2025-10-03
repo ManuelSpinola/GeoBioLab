@@ -1,0 +1,328 @@
+---
+title: "Untitled"
+---
+
+```{r}
+library(tidyverse)
+library(easystats)
+library(here)
+library(janitor)
+library(glue)
+library(sf)
+library(stars)
+library(terra)
+library(tidyterra)
+library(fundiversity)
+library(FD)
+library(mFD)
+library(traits)
+library(traitdata)
+library(TR8)
+library(rtry)
+library(traits.build)
+library(GIFT)
+library(funbiogeo)
+library(funspace)
+library(biodivMapR)
+library(traitstrap)
+library(BIEN)
+library(traitdata)
+library(letsR)
+library(vroom)
+library(crgeo)
+library(paisaje)
+```
+
+```{r}
+cr_especies_traits <- data_read(here("contenido/diversidad_funcional/traits/aves_traits_data/aves_traits_obtained/aves_cr_traits.xlsx"))
+```
+
+```{r}
+names(cr_especies_traits)
+```
+
+```{r}
+cr_especies_traits <- cr_especies_traits |>
+  select_at(vars(starts_with("spec"), contains("diet"))) |>
+  select(-diet_5cat_eb, -diet_ghwi, -diet_bb)
+```
+
+```{r}
+dim(cr_especies_traits)
+```
+
+```{r}
+cr_especies_traits_birdlife <- data_read(here("contenido/diversidad_funcional/traits/aves_traits_data/aves_traits_obtained/aves_cr_traits_birdlife.xlsx")) |>
+  clean_names()
+```
+
+```{r}
+dim(cr_especies_traits_birdlife)
+```
+
+```{r}
+glimpse(cr_especies_traits_birdlife)
+```
+
+```{r}
+cr_especies_traits_birdlife$min_latitude <- as.numeric(cr_especies_traits_birdlife$min_latitude)
+cr_especies_traits_birdlife$max_latitude <- as.numeric(cr_especies_traits_birdlife$max_latitude)
+cr_especies_traits_birdlife$centroid_latitude <- as.numeric(cr_especies_traits_birdlife$centroid_latitude)
+cr_especies_traits_birdlife$centroid_longitude <- as.numeric(cr_especies_traits_birdlife$centroid_longitude)
+cr_especies_traits_birdlife$range_size <- as.numeric(cr_especies_traits_birdlife$range_size)
+```
+
+```{r}
+cr_especies_traits_birdlife
+```
+
+```{r}
+cr_especies_traits_birdlife <- cr_especies_traits_birdlife |>
+  select(species, kipps_distance, hand_wing_index, mass, range_size, centroid_latitude, centroid_longitude)
+```
+
+```{r}
+especies_traits_combined <- mutate(cr_especies_traits, cr_especies_traits_birdlife)
+```
+
+```{r}
+summary(especies_traits_combined)
+```
+
+```{r}
+especies_traits_combined <- drop_na(especies_traits_combined)
+```
+
+```{r}
+especies_traits_combined
+```
+
+```{r}
+summary(especies_traits_combined)
+```
+
+```{r}
+sitios_especies_6 <- data_read(here("contenido/diversidad_funcional/traits/aves_data/aves_pa_in_polygons_6_df.xlsx"))
+```
+
+```{r}
+sitios_especies_6_sf<- st_read(here("contenido/diversidad_funcional/traits/aves_data/aves_pa_in_polygons_6.gpkg"))
+```
+
+```{r}
+sitios_especies_6 <- sitios_especies_6 |>
+  rename(site = h3_address)
+```
+
+```{r}
+head(sitios_especies_6)
+```
+
+```{r}
+site_coverage_by_species <- fb_count_sites_by_species(sitios_especies_6)
+```
+
+```{r}
+head(site_coverage_by_species)
+```
+
+```{r}
+species_coverage_by_site <- fb_count_species_by_site(sitios_especies_6)
+```
+
+```{r}
+head(species_coverage_by_site)
+```
+
+```{r}
+species_coverage_by_trait <- fb_count_species_by_trait(especies_traits_combined)
+```
+
+```{r}
+head(species_coverage_by_trait, 20)
+```
+
+```{r}
+trait_coverage_by_species <- fb_count_traits_by_species(especies_traits_combined)
+```
+
+```{r}
+head(trait_coverage_by_species)
+```
+
+```{r}
+sitios_especies_6 <- sitios_especies_6 |>
+  rowwise() %>% 
+  mutate(sumVar = sum(c_across(2:836))) |>
+  filter(sumVar >= 100)
+```
+
+```{r}
+sitios_especies_6 <- sitios_especies_6 |>
+  select(-sumVar)
+```
+
+```{r}
+sitios_especies_6 <- sitios_especies_6 |>
+  data.frame()
+sitios_especies_6
+```
+
+# Computing Functional Diversity metrics
+
+## Community-Weighted Mean (CWM)
+
+```{r}
+cwm_6 <- fb_cwm(sitios_especies_6, especies_traits_combined)
+```
+
+```{r}
+summary(cwm_6)
+```
+
+```{r}
+hand_wing_index_cwm <- subset(cwm_6, trait == "hand_wing_index")
+```
+
+```{r}
+fb_map_site_data(sitios_6, hand_wing_index_cwm, "cwm") +
+  scale_fill_viridis_c(trans = "log10") +
+  labs(title = "Aves Hand Wing Indice CWM")
+```
+
+## functional diversity indices
+
+#### Se calcularon con solo algunos traits de birdlife (todos continuos) y para sitios con más de 100 especies
+
+### especies_traits
+
+```{r}
+cr_especies_traits_birdlife <- drop_na(cr_especies_traits_birdlife)
+```
+
+```{r}
+cr_especies_traits_birdlife <- cr_especies_traits_birdlife |>
+column_to_rownames("species")
+```
+
+```{r}
+cr_especies_traits_birdlife
+```
+
+```{r}
+# escalar traits
+cr_especies_traits_birdlife <- scale(cr_especies_traits_birdlife)
+```
+
+```{r}
+cr_especies_traits_birdlife
+```
+
+### sitios_especies
+
+```{r}
+sitios_especies_6 <- sitios_especies_6 |>
+  column_to_rownames("site")
+```
+
+```{r}
+sitios_especies_6
+```
+
+### Compute Functional Richness (FRic)
+
+```{r}
+fric <- fundiversity::fd_fric(cr_especies_traits_birdlife, sitios_especies_6, stand = TRUE)
+```
+
+```{r}
+fric
+```
+
+```{r}
+fb_map_site_data(sitios_6, fric, "FRic") +
+  scale_fill_viridis_c(option = "magma") +
+  labs(title = "Birds Functional Richness")
+```
+
+```{r}
+sitios_6 <- st_read(here("traits/aves_data/grilla_6.gpkg"))
+```
+
+```{r}
+sitios_6 <- sitios_6 |>
+  rename(site = h3_address)
+```
+
+```{r}
+fric_sf <- left_join(sitios_6, fric, by = "site")
+```
+
+```{r}
+fric_sf
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = fric_sf, aes(fill = FRic)) +
+   scale_fill_distiller("Riqueza funcional", palette = "Spectral", na.value = "transparent")
+```
+
+```{r}
+st_write(fric_sf, here("functional_diversity/resultados_vectores/aves_fric.gpkg"), append = FALSE)
+```
+
+### Compute Functional Divergence (FDiv)
+
+```{r}
+fdiv <- fundiversity::fd_fdiv(cr_especies_traits_birdlife, sitios_especies_6)
+```
+
+```{r}
+fdiv
+```
+
+```{r}
+fdiv_sf <- left_join(sitios_6, fdiv, by = "site")
+```
+
+```{r}
+fdiv_sf
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = fdiv_sf, aes(fill = FDiv)) +
+   scale_fill_distiller("Divergencia funcional", palette = "Spectral", na.value = "transparent")
+```
+
+```{r}
+st_write(fdiv_sf, here("functional_diversity/resultados_vectores/aves_fdiv.gpkg"), append = FALSE)
+```
+
+### Compute Functional Evenness (FEve)
+
+```{r}
+feve <- fundiversity::fd_feve(cr_especies_traits_birdlife, sitios_especies_6)
+```
+
+```{r}
+feve_sf <- left_join(sitios_6, feve, by = "site")
+```
+
+```{r}
+feve_sf
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = feve_sf, aes(fill = FEve)) +
+   scale_fill_distiller("Evenness funcional", palette = "Spectral", na.value = "transparent")
+```
+
+```{r}
+st_write(feve_sf, here("functional_diversity/resultados_vectores/aves_feve.gpkg"), append = FALSE)
+```

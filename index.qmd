@@ -1,0 +1,60 @@
+---
+title: ""
+---
+
+
+![](logos/GeoBioLab_perezoso_recortado.png)
+
+# Bienvenidos a GeoBioLab 🌍
+
+**GeoBioLab** es el Laboratorio de Geotecnologías para la Conservación de la Biodiversidad del  
+[Instituto Internacional para la Conservación y Manejo de la Vida Silvestre (ICOMVIS)](https://www.icomvis.una.ac.cr/)  
+de la **Universidad Nacional, Costa Rica**.
+
+Nuestro objetivo es **integrar la teledetección, los sensores remotos y el análisis espacial** para generar conocimiento que apoye la **conservación de la biodiversidad y la gestión sostenible de los ecosistemas**.
+
+---
+
+## Lo que hacemos 🚀
+
+- 🔬 Investigación aplicada en conservación de la biodiversidad.  
+- 🛰️ Desarrollo de metodologías con sensores remotos y análisis espacial.  
+- 📊 Creación de herramientas y datos geoespaciales abiertos.  
+- 🎓 Formación y capacitación en el uso de geotecnologías para la conservación de la biodiversidad.  
+
+---
+
+## Explora nuestro sitio 🌱
+
+- 📚 **Artículos y recursos** – consulta el material disponible en la **barra lateral**.  
+- 💻 [Software GeoBioLab](software/software.qmd) – paquetes R, aplicaciones Shiny y herramientas desarrolladas en el laboratorio.
+
+---
+
+## 📬 Contacto
+
+Si deseas más información sobre **GeoBioLab**, colaborar en proyectos, o conocer más sobre nuestras iniciativas, puedes escribirnos a: 
+
+📧 **[mspinola@una.cr](mailto:mspinola@una.cr)**  
+
+
+
+```{r}
+scales::show_col("#1b998b")
+scales::show_col("#D0F0C0")
+scales::show_col("#0C3C01")
+scales::show_col("#386641")
+scales::show_col("#6A994E")
+scales::show_col("#567257")
+scales::show_col("#2A5A2B")
+scales::show_col("#00BCD4")
+scales::show_col("#FFC107")
+scales::show_col("#38a3a5")
+scales::show_col("#52b69a")
+scales::show_col("#426b69")
+scales::show_col("#8bb174")
+```
+
+
+
+

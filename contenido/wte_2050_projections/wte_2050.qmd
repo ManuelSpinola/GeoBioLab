@@ -1,0 +1,235 @@
+---
+title: "Proyecciones de los ecosistemas terrestres en Costa Rica para el año 2050"
+subtitle: En esta sección se mapea la proyección de los ecosistemas terrestres en Costa Rica para el 2050
+
+author:
+  - name: "Manuel Spínola"
+    url: http://www.icomvis.una.ac.cr/index.php/manuel
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-7839-1908
+    
+  - name: Natalie Sánchez
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-2105-1777
+
+format:
+  html:
+    embed-resources: true
+
+date: "2025-02-11"
+citation: true
+toc: true
+toc-title: Tabla de contenido
+toc-location: right
+toc-depth: 4
+bibliography: references.bib
+lang: es
+
+execute: 
+  echo: false
+  include: false
+
+draft: false
+categories:
+  - "Análisis del paisaje"
+---
+
+
+```{r}
+library(tidyverse)
+library(easystats)
+library(sf)
+library(terra)
+library(tidyterra)
+library(foreign)
+library(patchwork)
+library(crgeo)
+library(paisaje)
+```
+
+# Introducción
+
+Se acaba de publicar un estudio sobre las **distribuciones potenciales de los Ecosistemas Terrestres Mundiales (WTE) para 2050**, proyectadas a partir de **cambios en las Regiones Climáticas Mundiales y la Cobertura Terrestre Global** [@Sayre2025]. El estudio se basa en el conjunto de WTE de 2015, que define 431 tipos de ecosistemas terrestres como combinaciones distintas de regiones climáticas globales, clases de relieve y clases de cobertura terrestre/vegetación.
+
+El modelado de las distribuciones potenciales de los WTE para 2050 se basa en proyecciones de cinco modelos de circulación general (GCM) CMIP6 y un modelo global de cambio de cobertura terrestre, determinados para tres escenarios de vías socioeconómicas compartidas (SSP). Los escenarios SSP considerados son el de desarrollo sostenible (SSP 1–2.6), el de rivalidad regional (SSP 3–7.0) y el de desarrollo impulsado por combustibles fósiles (SSP 5–8.5). El modelado de la región climática incluyó proyecciones para 2050 tanto para la temperatura media anual como para la aridez media anual.
+
+# Los cambios proyectados a nivel mundial
+
+Los resultados del estudio sobre las distribuciones potenciales de los Ecosistemas Terrestres Mundiales (WTE) para 2050 indican cambios significativos en los tipos de ecosistemas, impulsados principalmente por el cambio climático y el cambio de cobertura terrestre.
+
+Estos son los resultados principales:
+
+- **Cambio generalizado de ecosistemas**: Se proyecta que entre el **29% y el 39% de la superficie terrestre** de la Tierra experimentará un cambio en el tipo de ecosistema para 2050, dependiendo del escenario socioeconómico considerado (SSP126, SSP370 y SSP585, respectivamente).
+
+- **Impulsores del cambio**: Los cambios en las distribuciones de los ecosistemas relacionados con el **cambio de temperatura** son mayores que los relacionados con el cambio de aridez. Los cambios en la cobertura terrestre muestran una variación relativamente constante entre los tres escenarios.
+
+- **Impacto en la población**: Los cambios proyectados en los ecosistemas afectarán a entre el **31% y el 41% de la población mundial**, lo que subraya la importancia de comprender estos cambios para la planificación de la adaptación y la mitigación.
+
+- **Cambios específicos en los ecosistemas**:
+
+    - Los bosques secos tropicales (WTE) disminuirán entre un 83% y un 52% en las montañas, colinas, mesetas y llanuras, respectivamente.
+    - Los cultivos de secano tropicales (WTE) aumentarán en un 70%, 39%, 68% y 45% en las montañas, colinas, mesetas y llanuras, respectivamente.
+
+- **Acuerdo entre modelos**: Existe un alto nivel de concordancia entre los modelos climáticos (GCM) utilizados en el estudio, especialmente en las proyecciones de temperatura, lo que aumenta la confianza en los resultados.
+
+- **Implicaciones para la conservación**: Los resultados proporcionan información valiosa para la planificación de la conservación, el establecimiento de prioridades y la contabilidad de los ecosistemas, ayudando a los esfuerzos para conservar la biodiversidad y los servicios de los ecosistemas en un clima cambiante.
+
+
+# Los cambios proyectados para Costa Rica
+
+Para Costa Rica también se proyectan cambios (@fig-wte1), que se interpretan más claramente en la @fig-wte2.
+
+```{r}
+cr <- cr_outline_c
+```
+
+
+```{r}
+cr_wte_2015 <- rast("cr_rasters/cr_wte_2015.tif")
+cr_wte_SSP126 <- rast("cr_rasters/cr_wte_projections_SSP126.tif")
+cr_wte_SSP370 <- rast("cr_rasters/cr_wte_projections_SSP370.tif")
+cr_wte_SSP585 <- rast("cr_rasters/cr_wte_projections_SSP585.tif")
+```
+
+
+```{r}
+todos <- c(cr_wte_2015, cr_wte_SSP126, cr_wte_SSP370, cr_wte_SSP585)
+```
+
+```{r}
+names(todos) <- c("Presente - 2015", "SPP1-2.6 - 2050", "SPP3-7.0 - 2050", "SSP5-8.5 - 2050")
+```
+
+
+
+```{r}
+#| message: false
+#| include: true
+#| out-width: 100%
+#| label: fig-wte1
+#| fig-cap: Proyecciones de los ecosistemas terrestres en Costa Rica para el 2050 bajo 3 escenarios de vías socioeconómicas compartidas (SSP).
+ggplot() +
+  theme_minimal() +
+  geom_spatraster(data = todos) +
+  scale_fill_coltab(data = todos) +
+  theme(legend.key=element_rect(colour="black")) +
+  geom_sf(data = cr, color = "black", fill = "transparent") +
+  facet_wrap(~lyr) +
+  theme(legend.position = "none") +
+  theme(axis.text = element_text(size = 4))
+```
+
+
+```{r}
+values <- c(0,1,2,3,4,5,6,7)
+print(values)
+```
+
+```{r}
+col <- c("white", "#eddd5f", "#bb85d6", "#bd8d7b", "#f5a27b", "#9a995a", "#7c439c", "#945e43")
+```
+
+```{r}
+coltb <- data.frame(value = values, col = col)
+```
+
+```{r}
+categories <- c("No change", "Temperature Only", "Aridity Only", "Land Cover Only", "Temperature and Aridity", "Temperature and Land Cover", "Aridity and Land Cover", "All")
+```
+
+```{r}
+cls <- data.frame(value = values, category = categories)
+```
+
+
+
+```{r}
+cr_wte_types_SSP126 <- rast("cr_rasters/cr_wte_changetype_projections_SSP126.tif")
+cr_wte_types_SSP370 <- rast("cr_rasters/cr_wte_changetype_projections_SSP370.tif")
+cr_wte_types_SSP585 <- rast("cr_rasters/cr_wte_changetype_projections_SSP585.tif")
+```
+
+
+```{r}
+terra::coltab(cr_wte_types_SSP126) <- coltb
+levels(cr_wte_types_SSP126) <- cls
+```
+
+```{r}
+terra::coltab(cr_wte_types_SSP370) <- coltb
+levels(cr_wte_types_SSP370) <- cls
+```
+
+```{r}
+terra::coltab(cr_wte_types_SSP585) <- coltb
+levels(cr_wte_types_SSP585) <- cls
+```
+
+
+```{r}
+todos_types <- c(cr_wte_types_SSP126, cr_wte_types_SSP370, cr_wte_types_SSP585)
+```
+
+```{r}
+names(todos_types) <- c("SPP1-2.6 - 2050", "SPP3-7.0 - 2050", "SSP5-8.5 - 2050")
+```
+
+
+La proyección del cambio en los ecosistemas terrestres de Costa Rica para el año 2050 se realizó bajo tres escenarios de vías socioeconómicas compartidas (SSP) (@fig-wte2):
+
+-	SSP1-2.6 (izquierda): Un escenario de desarrollo sostenible con bajas emisiones de gases de efecto invernadero y mitigación efectiva del cambio climático.
+
+-	SSP3-7.0 (centro): Un escenario de desarrollo desigual con altas emisiones, conflictos geopolíticos y poca cooperación ambiental.
+
+-	SSP5-8.5 (derecha): Un escenario de crecimiento económico basado en combustibles fósiles con altas emisiones y cambio climático acelerado.
+
+
+```{r}
+#| message: false
+#| include: true
+#| out-width: 100%
+#| label: fig-wte2
+#| fig-cap: Tipos de cambios en los ecosistemas terrestres en Costa Rica para el 2050 bajo 3 escenarios de vías socioeconómicas compartidas (SSP).
+ggplot() +
+  theme_minimal() +
+  geom_spatraster(data = todos_types) +
+  scale_fill_coltab(data = todos_types) +
+  theme(legend.key=element_rect(colour="black")) +
+  geom_sf(data = cr, color = "black", fill = "transparent") +
+  facet_wrap(~lyr) +
+  theme(legend.position = "bottom") +
+  theme(axis.text = element_text(size = 4))
+```
+
+Interpretación de la @fig-wte2
+
+**1. Distribución de los Cambios:**
+	
+-	Se observan áreas en blanco, lo que sugiere ausencia de cambios significativos en ciertos ecosistemas.
+
+-	Colores en tonalidades amarillo, marrón y verde, que representan distintas categorías de cambio en los ecosistemas.
+
+**2. Diferencias entre los Escenarios:**
+
+-	En SSP1-2.6, los cambios parecen ser menos intensos y más localizados, lo que concuerda con una mitigación efectiva del cambio climático.
+
+-	En SSP3-7.0 y SSP5-8.5, se observan cambios más amplios y pronunciados, indicando una mayor transformación ecológica en respuesta a condiciones climáticas y de uso del suelo más extremas.
+
+-	El escenario SSP5-8.5 parece mostrar los mayores impactos en términos de alteración de ecosistemas, reflejando el peor escenario de cambio climático.
+
+**3. Implicaciones para Costa Rica:**
+	
+-	La transición de ecosistemas podría afectar la biodiversidad, particularmente en áreas protegidas y reservas naturales.
+	
+-	Cambios en la distribución de ecosistemas podrían impactar la agricultura, la disponibilidad de agua y la resiliencia ante eventos climáticos extremos.
+	
+-	La planificación y conservación de los ecosistemas serán clave para minimizar los impactos negativos, especialmente en escenarios de altas emisiones.
+
+**Conclusión:**
+
+La @fig-wte2 ilustra cómo los diferentes niveles de cambio climático pueden afectar los ecosistemas terrestres de Costa Rica. Un desarrollo sostenible con medidas de mitigación (SSP1-2.6) podría reducir significativamente los impactos, mientras que escenarios de altas emisiones (SSP3-7.0 y SSP5-8.5) provocarían transformaciones más severas en los paisajes naturales del país.
+
+
+

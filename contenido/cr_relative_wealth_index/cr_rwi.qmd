@@ -1,0 +1,146 @@
+---
+title: "Indice de Riqueza Relativa (IRR) en Costa Rica"
+subtitle: En esta sección se mapea el Indice de Riqueza relativa (Relative Wealth Index) en Costa Rica
+
+author:
+  - name: "Manuel Spínola"
+    url: http://www.icomvis.una.ac.cr/index.php/manuel
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-7839-1908
+
+format:
+  html:
+    embed-resources: true
+
+date: "2025-03-11"
+citation: true
+toc: true
+toc-title: Tabla de contenido
+toc-location: right
+toc-depth: 4
+bibliography: references.bib
+lang: es
+
+execute: 
+  echo: false
+  include: false
+
+draft: false
+categories:
+  - "Análisis del paisaje"
+---
+
+```{r}
+library(tidyverse)
+library(easystats)
+library(sf)
+library(terra)
+library(tidyterra)
+library(mapview)
+library(crgeo)
+```
+
+# ¿Qué es y cómo se obtiene el Indice de Riqueza Relativa (IRR) de Meta?
+
+El Indice de Riqueza Relativa (Relative Wealth Index, RWI) es un indicador desarrollado por Meta para estimar la riqueza relativa a nivel global. Se basa en un modelo de aprendizaje automático que combina datos tradicionales, como encuestas económicas, con datos no tradicionales, como imágenes satelitales y conectividad digital, para predecir la distribución de la riqueza en diferentes regiones.
+
+# Metodología del IRR
+
+El cálculo del IRR sigue cuatro pasos principales:
+
+**1. Recolección de datos sobre riqueza real**
+
+-   Se utilizan datos de encuestas presenciales realizadas por la Agencia de los EE. UU. para el Desarrollo Internacional (USAID).
+
+-   Estas encuestas cubren 1.457.315 hogares únicos en 66.819 pueblos de 56 países con ingresos bajos y medios.
+
+**2. Vinculación con datos no tradicionales**
+
+-   Se asocian los datos de cada pueblo con información espacial derivada de:
+
+-   Imágenes satelitales (infraestructura, desarrollo urbano, características del paisaje).
+
+-   Datos de redes móviles (presencia y calidad de la conectividad).
+
+-   Mapas topográficos (relieve y acceso a recursos).
+
+-   Datos de conectividad de Facebook (información anónima sobre acceso a internet y dispositivos).
+
+**3. Procesamiento con aprendizaje profundo**
+
+-   Se utilizan técnicas avanzadas de aprendizaje profundo para convertir estos datos no tradicionales en características cuantitativas que representen la riqueza relativa de cada zona.
+
+**4. Entrenamiento de un modelo de aprendizaje automático supervisado**
+
+-   Con las características extraídas, se entrena un modelo de aprendizaje automático supervisado.
+
+-   El modelo aprende los patrones de distribución de la riqueza a partir de los datos de encuestas y luego predice la riqueza relativa para todas las celdas habitadas de 2,4 km² en el mundo, incluso en regiones sin encuestas directas.
+
+# Escala del índice
+
+El Indice de Riqueza Relativa (IRR) se expresa en una escala numérica donde:
+
+-   Valores positivos indican mayor riqueza relativa en comparación con otras regiones del mismo país.
+
+-   Valores cercanos a cero representan zonas con riqueza promedio.
+
+-   Valores negativos corresponden a regiones con menor riqueza relativa.
+
+Este índice no refleja ingresos absolutos ni el PIB per cápita, sino que compara la distribución de la riqueza dentro de cada país o región, permitiendo identificar desigualdades económicas.
+
+\
+
+La metodología del Indice de Riqueza RElativa ha sido documentada por Meta y puede consultarse en [enlace al sitio](https://dataforgood.facebook.com/dfg/tools/relative-wealth-index#accessdata).
+
+\
+
+```{r}
+cr <- cr_outline_c
+```
+
+```{r}
+rwi <- data_read("data/cri_relative_wealth_index.csv")
+```
+
+```{r}
+rwi
+```
+
+```{r}
+rwi_sf <- st_as_sf(rwi, coords = c("longitude", "latitude"), crs = 4326) 
+```
+
+```{r}
+summary(rwi_sf$rwi)
+```
+
+```{r}
+#| eval: false
+ggplot() +
+  geom_sf(data = cr) +
+  geom_sf(data = rwi_sf, aes(color = rwi), size = 0.1) +
+  scale_color_viridis_c(option = "B") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+pal <- heat.colors(50)
+rev_pal <- rev(pal)
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| include: true
+#| label: fig-rwi
+#| fig-cap: Relative wealth index en Costa Rica.
+mapview(rwi_sf, zcol = "rwi", cex = 0.8, col.regions = rev_pal, map.types = "CartoDB.DarkMatter", layer.name = "Relative Wealth Index")
+```
+
+\
+
+Para ver un mapa más grande, haga clic en el siguiente enlace:
+
+[Mapa más grande](https://studio.foursquare.com/map/public/bf3f4cf2-6933-4e91-bcb5-591c33101391)

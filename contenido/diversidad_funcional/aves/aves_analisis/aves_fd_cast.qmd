@@ -1,0 +1,879 @@
+---
+title: "Untitled"
+---
+
+```{r}
+library(tidyverse)
+library(easystats)
+library(here)
+library(janitor)
+library(glue)
+library(sf)
+library(stars)
+library(terra)
+library(tidyterra)
+library(fundiversity)
+library(FD)
+library(mFD)
+library(traits)
+library(traitdata)
+library(TR8)
+library(rtry)
+library(traits.build)
+library(GIFT)
+library(funbiogeo)
+library(funspace)
+library(biodivMapR)
+library(traitstrap)
+library(BIEN)
+library(traitdata)
+library(letsR)
+library(vroom)
+library(tidysdm)
+library(CAST)
+library(caret)
+library(DALEX)
+library(ingredients)
+library(ggnewscale)
+library(crgeo)
+library(paisaje)
+```
+
+## este análisis se basa en los resultados del archivo aves_fd_mixed.qmd. Se realizó el análisis para sitios con más de 100 especies
+
+```{r}
+cr <- cr_outline_c |>
+  st_transform(crs = 5367)
+cr
+```
+
+```{r}
+st_crs(cr) <- 5367
+```
+
+```{r}
+g6 <- st_read(here("grillas/grilla_6.gpkg")) |>
+  st_transform(crs = 5367)
+```
+
+```{r}
+st_crs(g6) <- 5367
+```
+
+```{r}
+variables6 <- st_read(here("variables_grillas/variables_g6.gpkg"))
+```
+
+```{r}
+variables6 <- variables6 |>
+  rename(site = h3_address)
+```
+
+```{r}
+variables6_df_s <- standardize(st_drop_geometry(variables6))
+```
+
+```{r}
+names(variables6_df_s)
+```
+
+```{r}
+predictores_6 <- c("relmutinf", "Tree_cover", "Cropland", "Mangroves", "Shrubland", "Permanent_water_bodies", "Built_up", "Herbaceous_wetland", "Bare_sparse_vegetation", "wc2.1_30s_bio_3", "wc2.1_30s_bio_14", "wc2.1_30s_bio_19", "wc2.1_30s_bio_2", "wc2.1_30s_bio_13")
+predictores_6
+```
+
+```{r}
+fric_sf <- st_read(here("functional_diversity/resultados_vectores/aves_fric.gpkg"))
+```
+
+```{r}
+fdiv_sf <- st_read(here("functional_diversity/resultados_vectores/aves_fdiv.gpkg"))
+```
+
+```{r}
+feve_sf <- st_read(here("functional_diversity/resultados_vectores/aves_feve.gpkg"))
+```
+
+```{r}
+fric_sf_na <- drop_na(fric_sf)
+fric_sf_na
+```
+
+```{r}
+fdiv_sf_na <- drop_na(fdiv_sf)
+fdiv_sf_na
+```
+
+```{r}
+feve_sf_na <- drop_na(feve_sf)
+feve_sf_na
+```
+
+```{r}
+fric_sf_na <- left_join(fric_sf_na, variables6_df_s, by = "site")
+```
+
+```{r}
+fdiv_sf_na <- left_join(fdiv_sf_na, variables6_df_s, by = "site")
+```
+
+```{r}
+feve_sf_na <- left_join(feve_sf_na, variables6_df_s, by = "site")
+```
+
+```{r}
+st_crs(fric_sf_na) <- 5367
+```
+
+```{r}
+st_crs(fdiv_sf_na) <- 5367
+```
+
+```{r}
+st_crs(feve_sf_na) <- 5367
+```
+
+## models fric
+
+```{r}
+model_default_6 <- train(st_drop_geometry(fric_sf_na)[,predictores_6],
+               st_drop_geometry(fric_sf_na)$FRic,
+               method = "rf",
+               tuneGrid = data.frame("mtry" = 2),
+               importance = TRUE, ntree = 500,
+               trControl = trainControl(method = "cv", number = 3, savePredictions = "final"))
+```
+
+```{r}
+model_default_6
+```
+
+```{r}
+global_validation(model_default_6)
+```
+
+```{r}
+set.seed(10)
+indices_LLO_6 <- CreateSpacetimeFolds(fric_sf_na, spacevar = "site", k = 3)
+```
+
+```{r}
+set.seed(10)
+indices_knndm_6 <- knndm(fric_sf_na, cr, k = 3)
+```
+
+```{r}
+plot(geodist(fric_sf_na, cr, cvfolds = model_default_6$control$indexOut)) + 
+  scale_x_log10(labels=round)
+```
+
+```{r}
+plot(geodist(fric_sf, cr, cvfolds = indices_LLO_6$indexOut)) + 
+  scale_x_log10(labels=round)
+```
+
+```{r}
+plot(geodist(fric_sf, cr, cvfolds = indices_knndm_6$indx_test)) + scale_x_log10(labels=round)
+```
+
+# refit the model with knnm
+
+```{r}
+model_6 <- train(st_drop_geometry(fric_sf_na)[,predictores_6],
+               st_drop_geometry(fric_sf_na)$FRic,
+               method = "rf",
+               tuneGrid = data.frame("mtry" = 2),
+               importance = TRUE, 
+               ntree = 500,
+               trControl=trainControl(method="cv",
+                                          index = indices_knndm_6$indx_train,
+                                          savePredictions = "final"))
+```
+
+```{r}
+model_6
+```
+
+```{r}
+global_validation(model_6)
+```
+
+# refit the model with LLO
+
+```{r}
+model_6_llo <- train(st_drop_geometry(fric_sf_na)[,predictores_6],
+               st_drop_geometry(fric_sf_na)$FRic,
+               method = "rf",
+               tuneGrid = data.frame("mtry" = 2),
+               importance = TRUE, 
+               ntree = 500,
+               trControl=trainControl(method="cv",
+                                          index = indices_LLO_6$index,
+                                          savePredictions = "final"))
+```
+
+```{r}
+model_6_llo
+```
+
+```{r}
+global_validation(model_6_llo)
+```
+
+```{r}
+plot(varImp(model_6_llo))
+```
+
+```{r}
+set.seed(10)
+ffsmodel_6 <- ffs(st_drop_geometry(fric_sf_na)[,predictores_6],
+                st_drop_geometry(fric_sf_na)$FRic,
+                method = "rf", 
+                tuneGrid = data.frame("mtry"=2),
+                verbose = FALSE,
+                ntree = 500, 
+                trControl = trainControl(method="cv",
+                                           index = indices_LLO_6$index,
+                                           savePredictions = "final"))
+```
+
+```{r}
+ffsmodel_6
+```
+
+```{r}
+global_validation(ffsmodel_6)
+```
+
+```{r}
+ffsmodel_6$selectedvars
+```
+
+```{r}
+plot(ffsmodel_6)
+```
+
+```{r}
+plot(varImp(ffsmodel_6))
+```
+
+# predictions
+
+```{r}
+variables6_df_s
+```
+
+```{r}
+summary(variables6_df_s)
+```
+
+```{r}
+variables6_df_s_na <- drop_na(variables6_df_s)
+```
+
+```{r}
+fric_prediction_6_cast <- cbind(variables6_df_s_na, predict(ffsmodel_6, newdata = variables6_df_s_na, na.action = na.omit))
+```
+
+```{r}
+fric_prediction_6_cast
+```
+
+```{r}
+fric_prediction_6_cast_sf <- left_join(fric_sf, fric_prediction_6_cast, by = "site")
+```
+
+```{r}
+fric_prediction_6_cast_sf
+```
+
+```{r}
+names(fric_prediction_6_cast_sf)
+```
+
+```{r}
+fric_prediction_6_cast_sf <- rename(fric_prediction_6_cast_sf, "f_rich" = "predict(ffsmodel_6, newdata = variables6_df_s_na, na.action = na.omit)")
+```
+
+```{r}
+summary(fric_prediction_6_cast_sf)
+```
+
+```{r}
+st_write(fric_prediction_6_cast_sf, here("material_para_sitio/aves/fric_prediction_6_cast.gpkg"), append = FALSE)
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = fric_prediction_6_cast_sf, aes(fill = f_rich), linewidth = 0.001) +
+  scale_fill_viridis_c(name = "Riqueza funcional", option = "B", direction = -1)
+```
+
+# Area of applicability
+
+```{r}
+AOA_6 <- aoa(newdata = variables6_df_s_na, model = ffsmodel_6, LPD = TRUE, verbose = FALSE)
+```
+
+```{r}
+AOA_6
+```
+
+```{r}
+variables6_df_s_na$aoa <- aoa(newdata = variables6_df_s_na, model = ffsmodel_6, LPD = TRUE, verbose = FALSE)$AOA
+```
+
+```{r}
+variables6_df_s_na
+```
+
+```{r}
+variables6
+```
+
+```{r}
+aoa_6 <- left_join(variables6, variables6_df_s_na, by = "site")
+```
+
+```{r}
+aoa_6$aoa <- factor(aoa_6$aoa)
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = cr) +
+  geom_sf(data = fric_prediction_6_cast_sf, aes(fill = f_rich), linewidth = 0.001) +
+  scale_fill_viridis_c(name = "Riqueza funcional", option = "B", direction = -1) +
+  new_scale_fill() +
+  geom_sf(data = aoa_6, aes(fill = aoa), linewidth = 0.001) +
+  scale_fill_manual(values = c("gray", "transparent"), na.translate = FALSE, breaks = 0, name = "", labels = "Fuera del \nArea de Aplicabilidad")
+```
+
+# DALEX
+
+```{r}
+e_6 <- DALEX::explain(ffsmodel_6$finalModel, data = st_drop_geometry(fric_sf_na), y = st_drop_geometry(fric_sf_na)$FRic)
+```
+
+```{r}
+vip_e_6 <- model_parts(explainer = e_6)
+```
+
+```{r}
+vip_e_6
+```
+
+```{r}
+plot(vip_e_6, bar_width = 4, show_boxplots = FALSE)
+```
+
+```{r}
+pdp_e_6 <- model_profile(e_6, variables = "Herbaceous_wetland")
+```
+
+```{r}
+plot(pdp_e_6)
+```
+
+
+## models fdiv
+
+```{r}
+model_default_6 <- train(st_drop_geometry(fdiv_sf_na)[,predictores_6],
+               st_drop_geometry(fdiv_sf_na)$FDiv,
+               method = "rf",
+               tuneGrid = data.frame("mtry" = 2),
+               importance = TRUE, ntree = 500,
+               trControl = trainControl(method = "cv", number = 3, savePredictions = "final"))
+```
+
+```{r}
+model_default_6
+```
+
+```{r}
+global_validation(model_default_6)
+```
+
+```{r}
+set.seed(10)
+indices_LLO_6 <- CreateSpacetimeFolds(fdiv_sf_na, spacevar = "site", k = 3)
+```
+
+```{r}
+set.seed(10)
+indices_knndm_6 <- knndm(fdiv_sf_na, cr, k = 3)
+```
+
+```{r}
+plot(geodist(fdiv_sf_na, cr, cvfolds = model_default_6$control$indexOut)) + 
+  scale_x_log10(labels=round)
+```
+
+```{r}
+plot(geodist(fdiv_sf_na, cr, cvfolds = indices_LLO_6$indexOut)) + 
+  scale_x_log10(labels=round)
+```
+
+```{r}
+plot(geodist(fdiv_sf_na, cr, cvfolds = indices_knndm_6$indx_test)) + scale_x_log10(labels=round)
+```
+
+# refit the model with knnm
+
+```{r}
+model_6 <- train(st_drop_geometry(fdiv_sf_na)[,predictores_6],
+               st_drop_geometry(fdiv_sf_na)$FDiv,
+               method = "rf",
+               tuneGrid = data.frame("mtry" = 2),
+               importance = TRUE, 
+               ntree = 500,
+               trControl=trainControl(method="cv",
+                                          index = indices_knndm_6$indx_train,
+                                          savePredictions = "final"))
+```
+
+```{r}
+model_6
+```
+
+```{r}
+global_validation(model_6)
+```
+
+# refit the model with LLO
+
+```{r}
+model_6_llo <- train(st_drop_geometry(fdiv_sf_na)[,predictores_6],
+               st_drop_geometry(fdiv_sf_na)$FDiv,
+               method = "rf",
+               tuneGrid = data.frame("mtry" = 2),
+               importance = TRUE, 
+               ntree = 500,
+               trControl=trainControl(method="cv",
+                                          index = indices_LLO_6$index,
+                                          savePredictions = "final"))
+```
+
+```{r}
+model_6_llo
+```
+
+```{r}
+global_validation(model_6_llo)
+```
+
+```{r}
+plot(varImp(model_6_llo))
+```
+
+```{r}
+set.seed(10)
+ffsmodel_6 <- ffs(st_drop_geometry(fdiv_sf_na)[,predictores_6],
+                st_drop_geometry(fdiv_sf_na)$FDiv,
+                method = "rf", 
+                tuneGrid = data.frame("mtry"=2),
+                verbose = FALSE,
+                ntree = 500, 
+                trControl = trainControl(method="cv",
+                                           index = indices_LLO_6$index,
+                                           savePredictions = "final"))
+```
+
+```{r}
+ffsmodel_6
+```
+
+```{r}
+global_validation(ffsmodel_6)
+```
+
+```{r}
+ffsmodel_6$selectedvars
+```
+
+```{r}
+plot(ffsmodel_6)
+```
+
+```{r}
+plot(varImp(ffsmodel_6))
+```
+
+# predictions
+
+```{r}
+variables6_df_s
+```
+
+```{r}
+summary(variables6_df_s)
+```
+
+```{r}
+variables6_df_s_na <- drop_na(variables6_df_s)
+```
+
+```{r}
+fdiv_prediction_6_cast <- cbind(variables6_df_s_na, predict(ffsmodel_6, newdata = variables6_df_s_na, na.action = na.omit))
+```
+
+```{r}
+fdiv_prediction_6_cast
+```
+
+```{r}
+fdiv_prediction_6_cast_sf <- left_join(fdiv_sf, fdiv_prediction_6_cast, by = "site")
+```
+
+```{r}
+fdiv_prediction_6_cast_sf
+```
+
+```{r}
+names(fdiv_prediction_6_cast_sf)
+```
+
+```{r}
+fdiv_prediction_6_cast_sf <- rename(fdiv_prediction_6_cast_sf, "f_div" = "predict(ffsmodel_6, newdata = variables6_df_s_na, na.action = na.omit)")
+```
+
+```{r}
+summary(fdiv_prediction_6_cast_sf)
+```
+
+```{r}
+st_write(fdiv_prediction_6_cast_sf, here("material_para_sitio/aves/fdiv_prediction_6_cast.gpkg"), append = FALSE)
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = fdiv_prediction_6_cast_sf, aes(fill = f_div), linewidth = 0.001) +
+  scale_fill_viridis_c(name = "Divergencia funcional", option = "B", direction = -1)
+```
+
+# Area of applicability
+
+```{r}
+AOA_6 <- aoa(newdata = variables6_df_s_na, model = ffsmodel_6, LPD = TRUE, verbose = FALSE)
+```
+
+```{r}
+AOA_6
+```
+
+```{r}
+variables6_df_s_na$aoa <- aoa(newdata = variables6_df_s_na, model = ffsmodel_6, LPD = TRUE, verbose = FALSE)$AOA
+```
+
+```{r}
+variables6_df_s_na
+```
+
+```{r}
+variables6
+```
+
+```{r}
+aoa_6 <- left_join(variables6, variables6_df_s_na, by = "site")
+```
+
+```{r}
+aoa_6$aoa <- factor(aoa_6$aoa)
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = cr) +
+  geom_sf(data = fdiv_prediction_6_cast_sf, aes(fill = f_div), linewidth = 0.001) +
+  scale_fill_viridis_c(name = "Divergencia funcional", option = "B", direction = -1) +
+  new_scale_fill() +
+  geom_sf(data = aoa_6, aes(fill = aoa), linewidth = 0.001) +
+  scale_fill_manual(values = c("gray", "transparent"), na.translate = FALSE, breaks = 0, name = "", labels = "Fuera del \nArea de Aplicabilidad")
+```
+
+# DALEX
+
+```{r}
+e_6 <- DALEX::explain(ffsmodel_6$finalModel, data = st_drop_geometry(fdiv_sf_na), y = st_drop_geometry(fdiv_sf_na)$FDiv)
+```
+
+```{r}
+vip_e_6 <- model_parts(explainer = e_6)
+```
+
+```{r}
+vip_e_6
+```
+
+```{r}
+plot(vip_e_6, bar_width = 4, show_boxplots = FALSE)
+```
+
+```{r}
+pdp_e_6 <- model_profile(e_6, variables = "Built_up")
+```
+
+```{r}
+plot(pdp_e_6)
+```
+
+
+
+## models feve
+
+```{r}
+model_default_6 <- train(st_drop_geometry(feve_sf_na)[,predictores_6],
+               st_drop_geometry(feve_sf_na)$FEve,
+               method = "rf",
+               tuneGrid = data.frame("mtry" = 2),
+               importance = TRUE, ntree = 500,
+               trControl = trainControl(method = "cv", number = 3, savePredictions = "final"))
+```
+
+```{r}
+model_default_6
+```
+
+```{r}
+global_validation(model_default_6)
+```
+
+```{r}
+set.seed(10)
+indices_LLO_6 <- CreateSpacetimeFolds(feve_sf_na, spacevar = "site", k = 3)
+```
+
+```{r}
+set.seed(10)
+indices_knndm_6 <- knndm(feve_sf_na, cr, k = 3)
+```
+
+```{r}
+plot(geodist(feve_sf_na, cr, cvfolds = model_default_6$control$indexOut)) + 
+  scale_x_log10(labels=round)
+```
+
+```{r}
+plot(geodist(feve_sf_na, cr, cvfolds = indices_LLO_6$indexOut)) + 
+  scale_x_log10(labels=round)
+```
+
+```{r}
+plot(geodist(feve_sf_na, cr, cvfolds = indices_knndm_6$indx_test)) + scale_x_log10(labels=round)
+```
+
+# refit the model with knnm
+
+```{r}
+model_6 <- train(st_drop_geometry(feve_sf_na)[,predictores_6],
+               st_drop_geometry(feve_sf_na)$FEve,
+               method = "rf",
+               tuneGrid = data.frame("mtry" = 2),
+               importance = TRUE, 
+               ntree = 500,
+               trControl=trainControl(method="cv",
+                                          index = indices_knndm_6$indx_train,
+                                          savePredictions = "final"))
+```
+
+```{r}
+model_6
+```
+
+```{r}
+global_validation(model_6)
+```
+
+# refit the model with LLO
+
+```{r}
+model_6_llo <- train(st_drop_geometry(feve_sf_na)[,predictores_6],
+               st_drop_geometry(feve_sf_na)$FEve,
+               method = "rf",
+               tuneGrid = data.frame("mtry" = 2),
+               importance = TRUE, 
+               ntree = 500,
+               trControl=trainControl(method="cv",
+                                          index = indices_LLO_6$index,
+                                          savePredictions = "final"))
+```
+
+```{r}
+model_6_llo
+```
+
+```{r}
+global_validation(model_6_llo)
+```
+
+```{r}
+plot(varImp(model_6_llo))
+```
+
+```{r}
+set.seed(10)
+ffsmodel_6 <- ffs(st_drop_geometry(feve_sf_na)[,predictores_6],
+                st_drop_geometry(feve_sf_na)$FEve,
+                method = "rf", 
+                tuneGrid = data.frame("mtry"=2),
+                verbose = FALSE,
+                ntree = 500, 
+                trControl = trainControl(method="cv",
+                                           index = indices_LLO_6$index,
+                                           savePredictions = "final"))
+```
+
+```{r}
+ffsmodel_6
+```
+
+```{r}
+global_validation(ffsmodel_6)
+```
+
+```{r}
+ffsmodel_6$selectedvars
+```
+
+```{r}
+plot(ffsmodel_6)
+```
+
+```{r}
+plot(varImp(ffsmodel_6))
+```
+
+# predictions
+
+```{r}
+variables6_df_s
+```
+
+```{r}
+summary(variables6_df_s)
+```
+
+```{r}
+variables6_df_s_na <- drop_na(variables6_df_s)
+```
+
+```{r}
+feve_prediction_6_cast <- cbind(variables6_df_s_na, predict(ffsmodel_6, newdata = variables6_df_s_na, na.action = na.omit))
+```
+
+```{r}
+feve_prediction_6_cast
+```
+
+```{r}
+feve_prediction_6_cast_sf <- left_join(feve_sf, feve_prediction_6_cast, by = "site")
+```
+
+```{r}
+feve_prediction_6_cast_sf
+```
+
+```{r}
+names(feve_prediction_6_cast_sf)
+```
+
+```{r}
+feve_prediction_6_cast_sf <- rename(feve_prediction_6_cast_sf, "f_eve" = "predict(ffsmodel_6, newdata = variables6_df_s_na, na.action = na.omit)")
+```
+
+```{r}
+summary(feve_prediction_6_cast_sf)
+```
+
+```{r}
+st_write(feve_prediction_6_cast_sf, here("material_para_sitio/aves/feve_prediction_6_cast.gpkg"), append = FALSE)
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = feve_prediction_6_cast_sf, aes(fill = f_eve), linewidth = 0.001) +
+  scale_fill_viridis_c(name = "Equitatividad funcional", option = "B", direction = -1)
+```
+
+# Area of applicability
+
+```{r}
+AOA_6 <- aoa(newdata = variables6_df_s_na, model = ffsmodel_6, LPD = TRUE, verbose = FALSE)
+```
+
+```{r}
+AOA_6
+```
+
+```{r}
+variables6_df_s_na$aoa <- aoa(newdata = variables6_df_s_na, model = ffsmodel_6, LPD = TRUE, verbose = FALSE)$AOA
+```
+
+```{r}
+variables6_df_s_na
+```
+
+```{r}
+variables6
+```
+
+```{r}
+aoa_6 <- left_join(variables6, variables6_df_s_na, by = "site")
+```
+
+```{r}
+aoa_6$aoa <- factor(aoa_6$aoa)
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = cr) +
+  geom_sf(data = feve_prediction_6_cast_sf, aes(fill = f_eve), linewidth = 0.001) +
+  scale_fill_viridis_c(name = "Equitatividad funcional", option = "B", direction = -1) +
+  new_scale_fill() +
+  geom_sf(data = aoa_6, aes(fill = aoa), linewidth = 0.001) +
+  scale_fill_manual(values = c("gray", "transparent"), na.translate = FALSE, breaks = 0, name = "", labels = "Fuera del \nArea de Aplicabilidad")
+```
+
+# DALEX
+
+```{r}
+e_6 <- DALEX::explain(ffsmodel_6$finalModel, data = st_drop_geometry(feve_sf_na), y = st_drop_geometry(feve_sf_na)$FEve)
+```
+
+```{r}
+vip_e_6 <- model_parts(explainer = e_6)
+```
+
+```{r}
+vip_e_6
+```
+
+```{r}
+plot(vip_e_6, bar_width = 4, show_boxplots = FALSE)
+```
+
+```{r}
+pdp_e_6 <- model_profile(e_6, variables = "Tree_cover")
+```
+
+```{r}
+plot(pdp_e_6)
+```
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,263 @@
+<PAMDataset>
+  <PAMRasterBand band="1">
+    <Description>bosque</Description>
+    <CategoryNames>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category>Undisturbed tropical moist forest</Category>
+      <Category></Category>
+      <Category>Undisturbed mangrove</Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category>Degraded forest with short-duration disturbance (started before 2013)</Category>
+      <Category>Degraded forest with short-duration disturbance (started in 2013-2021)</Category>
+      <Category>Degraded forest with long-duration disturbance (started before 2013)</Category>
+      <Category>Degraded forest with long-duration disturbance (started in 2013-2021)</Category>
+      <Category>Degraded forest with 2/3 short degradation periods (last degradation started before 2013)</Category>
+      <Category>Degraded forest with 2/3 short degradation periods (last degradation started in 2013-2021)</Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category>Old forest regrowth (disturbed before 2003)</Category>
+      <Category>Young forest regrowth (disturbed in 2003-2012)</Category>
+      <Category>Very young forest regrowth (disturbed in 20132019)</Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category>Deforestation started before 2012</Category>
+      <Category>Deforestation started in 2012-2019</Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category>Deforestation started in 2020</Category>
+      <Category>Deforestation started in 2021</Category>
+      <Category>Deforestation started in 2022</Category>
+      <Category>Degradation started in 2022</Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category>Degraded mangrove (started before 2013)</Category>
+      <Category>Mangrove recently degraded (2013 -2021)</Category>
+      <Category>Mangrove regrowing (at least 10 years - 20132022)</Category>
+      <Category>Mangrove regrowing (at least 3 years - 2020-2022)</Category>
+      <Category>Mangrove deforested (started before 2012)</Category>
+      <Category>Mangrove deforested (started in 2013-2019)</Category>
+      <Category>Mangrove recently disturbed (started in 20202022)</Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category>Permanent Water</Category>
+      <Category>Seasonal Water</Category>
+      <Category>Deforestation to permanent Water</Category>
+      <Category>Deforestation to seasonal water</Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category>Old plantation</Category>
+      <Category>Plantation regrowing (disturbed before 2013)</Category>
+      <Category>Plantation regrowing (disturbed in 2013-2019)</Category>
+      <Category>Conversion to tree plantation (deforestation started before 2012)</Category>
+      <Category>Conversion to tree plantation (deforestation started in 2013-2019)</Category>
+      <Category>Recent conversion to plantation (started in 20202022)</Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category>Other LC without afforestation</Category>
+      <Category>Young afforestation (between 3 and 9 years of regrowth)</Category>
+      <Category>Old afforestation (between 10 and 20 years of regrowth)</Category>
+      <Category>Water converted recently into forest regrowth (at least 3 years)</Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+      <Category></Category>
+    </CategoryNames>
+  </PAMRasterBand>
+</PAMDataset>

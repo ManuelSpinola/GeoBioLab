@@ -1,0 +1,27 @@
+# Archivos de proyecto R/Quarto
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Cachés y directorios internos de Quarto
+/.quarto/               # Carpeta de configuración interna de Quarto
+**/*.quarto_ipynb       # Archivos temporales de Jupyter/Quarto
+_quarto_freeze/         # Si usas freeze para renderizado
+
+# Directorio de salida del sitio web (¡MUY IMPORTANTE!)
+_site/                  # O 'docs/', 'public/', si lo configuraste diferente en _quarto.yml
+
+# Otros archivos generados o de sistema
+.DS_Store               # Archivos de sistema de macOS
+.netlify/               # Carpeta local de Netlify si no se publica directamente
+
+*.tif
+*.tiff
+*.csv
+*.txt
+
+contenido/diversidad_funcional/traits/aves_traits_data/aves_traits_sources/ELEData/
+contenido/diversidad_funcional/traits/aves_data/
+
+

@@ -1,0 +1,259 @@
+---
+title: "Métricas de complejidad del paisaje en Costa Rica"
+subtitle: En esta sección se calculan 5 métricas de complejidad del paisaje para Costa Rica
+image: "preview.png"
+author:
+  - name: "Manuel Spínola"
+    url: http://www.icomvis.una.ac.cr/index.php/manuel
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-7839-1908
+    
+  - name: Natalie Sánchez
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-2105-1777
+
+format:
+  html:
+    embed-resources: true
+
+date: "2025-01-21"
+citation: true
+toc: true
+toc-title: Tabla de contenido
+toc-location: right
+toc-depth: 4
+bibliography: references.bib
+lang: es
+
+execute: 
+  echo: false
+  include: false
+
+draft: false
+categories:
+  - "Análisis del paisaje"
+---
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(rio)
+library(sf)
+library(terra)
+library(tidyterra)
+library(landscapemetrics)
+library(motif)
+library(ggthemes)
+library(colorspace)
+library(RColorBrewer)
+library(here)
+library(ggthemes)
+library(ggpubr)
+library(kableExtra)
+library(crgeo)
+library(paisaje)
+```
+
+```{r}
+cr_lulc_cat <- rast("lulc/cr_lulc_cat.tif")
+```
+
+```{r}
+g_6_it <- st_read("it_metrics_vectores/g_6_it.gpkg")
+```
+
+```{r}
+g_7_it <- st_read("it_metrics_vectores/g_7_it.gpkg")
+```
+
+# Métodos
+
+Para calcular las métricas de complejidad del paisaje para Costa Rica se usó un mapa de uso del suelo de 10 m de resolución del 2021 [@https://doi.org/10.5281/zenodo.7254221]. Las métricas del paisaje se calcularon en 2 grillas hexagonal con unidades de aproximadamente 3500 ha y 512 ha, respectivamente. Los análisis y gráficos los realicé con R [@R2024] y los paquetes landscapemetrics [@Hesselbarth2019], sf [@Pebesma2018], stars [@Pebesma2021] y ggplot2 [@Wickham2016].
+
+```{r}
+#| message: false
+#| include: true
+#| label: fig-lulc
+#| fig-cap: Mapa de uso del suelo de Costa Rica, 2021.
+ggplot() +
+  theme_minimal() +
+  geom_spatraster(data = cr_lulc_cat) +
+  scale_fill_coltab(data = cr_lulc_cat, name = "Uso del suelo", na.value = "transparent", na.translate = FALSE, labels = c("Cobertura boscosa", "Matorrales", "Pastizales", "Cultivos", "Areas edificadas", "Vegetación rala", "Cuerpod de agua permanentes", "Humedales herbáceos", "Manglares")) +
+  coord_sf(datum = st_crs(5367))
+```
+
+# Resultados
+
+En ambos sitemas de cuadrículas se ve un claro patrón de la complejidad del paisaje para Costa Rica. Para las 3 métricas de entropía se puede observar que los lugares de menor entropía son las regiones del la Cordillera de Talamanca y la región sur-oeste de la península de Osa. La entropía marginal representa la diversidad de usos del suelo. Por lo tanto, valores bajos significan menor complejidad temática o de composición, por lo que estas regiones estan dominadas por uno o pocos tipos de uso del suelo (Figura 2 y 7). La entropía condicional que representa la complejidad de configuración de las categorías espaciales, es tambien baja para estas regiones. Las celdas de un tipo de uso de suelo son adyacentes a celdas de un solo tipo de uso del suelo, estando dominadas por uno o pocos tipos de uso de suelo (Figura 3 y 8). La entropía conjunta describe a estas regiones como las más simples en cuanto a complejidad (Figura 4 y 9). La información mutua también muestra un patrón similar, con bajos valores para las regiones mencionadas, indicando que no hay una buena agregación de los diferentes tipos de uso de suelo (Figura 5 y 10). Por último, la información mutua relativa en las regiones mencionadas muestran los valores más altos de la métrica, por lo que significa mayor una agregación de celdas del mismo tipo de uso del suelo (Figura 6 y 11).
+
+## Métricas de complejidad del paisaje para Costa Rica en grilla hexagonal de celdas de aproximadamente 3500 ha
+
+<br>
+
+**Entropía marginal**
+
+```{r}
+#| include: true
+#| label: fig-ent_6
+#| fig-cap: Mapa de entropía marginal para Costa Rica en una grilla hexagonal de celdas de aproximadamente 3500 ha, 2021.
+lm_ent_6 <- ggplot(g_6_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = ent), size = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Entropía \nmarginal", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_ent_6
+```
+
+<br>
+
+**Entropía condicional**
+
+```{r}
+#| include: true
+#| label: fig-condent_6
+#| fig-cap: Mapa de entropía condicional para Costa Rica en una grilla hexagonal de celdas de aproximadamente 3500 ha, 2021.
+lm_condent_6 <- ggplot(g_6_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = condent), size = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Entropía \ncondicional", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_condent_6
+```
+
+\
+
+**Entropía conjunta**
+
+```{r}
+#| include: true
+#| label: fig-joinent_6
+#| fig-cap: Mapa de entropía conjunta para Costa Rica en una grilla hexagonal de celdas de aproximadamente 3500 ha, 2021.
+lm_joinent_6 <- ggplot(g_6_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = joinent), size = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Entropía \nconjunta", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_joinent_6
+```
+
+\
+
+**Información mutua**
+
+```{r}
+#| include: true
+#| label: fig-mutinf_6
+#| fig-cap: Mapa de información mutua para Costa Rica en una grilla hexagonal de celdas de aproximadamente 3500 ha, 2021.
+lm_mutinf_6 <- ggplot(g_6_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = mutinf), size = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Información \nmutua", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_mutinf_6
+```
+
+\
+
+**Información mutua relativa**
+
+```{r}
+#| include: true
+#| label: fig-relmutinf_6
+#| fig-cap: Mapa de infromación mutua relativa para Costa Rica en una grilla hexagonal de celdas de aproximadamente 3500 ha, 2021.
+lm_relmutinf_6 <- ggplot(g_6_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = relmutinf), size = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Información \nmutua \nrelativa", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_relmutinf_6
+```
+
+\
+
+## Métricas de complejidad del paisaje para Costa Rica en grilla hexagonal de celdas de aproximadamente 512 ha
+
+\
+
+**Entropía marginal**
+
+```{r}
+#| include: true
+#| label: fig-ent_7
+#| fig-cap: Mapa de entropía marginal para Costa Rica en una grilla hexagonal de celdas de aproximadamente 512 ha, 2021.
+lm_ent_7 <- ggplot(g_7_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = ent), linewidth = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Entropía \nmarginal", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_ent_7
+```
+
+\
+
+**Entropía condicional**
+
+```{r}
+#| include: true
+#| label: fig-condent_7
+#| fig-cap: Mapa de entropía condicional para Costa Rica en una grilla hexagonal de celdas de aproximadamente 512 ha, 2021.
+lm_condent_7 <- ggplot(g_7_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = condent), linewidth = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Entropía \ncondicional", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_condent_7
+```
+
+\
+
+**Entropía conjunta**
+
+```{r}
+#| include: true
+#| label: fig-joinent_7
+#| fig-cap: Mapa de entropía conjunta para Costa Rica en una grilla hexagonal de celdas de aproximadamente 512 ha, 2021.
+lm_joinent_7 <- ggplot(g_7_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = joinent), linewidth = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Entropía \nconjunta", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_joinent_7
+```
+
+\
+
+**Información mutua**
+
+```{r}
+#| include: true
+#| label: fig-mutinf_7
+#| fig-cap: Mapa de información mutua para Costa Rica en una grilla hexagonal de celdas de aproximadamente 512 ha, 2021.
+lm_mutinf_7 <- ggplot(g_7_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = mutinf), linewidth = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Información \nmutua", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_mutinf_7
+```
+
+\
+
+**Entropía mutua relativa**
+
+```{r}
+#| include: true
+#| label: fig-relmutinf_7
+#| fig-cap: Mapa de infromación mutua relativa para Costa Rica en una grilla hexagonal de celdas de aproximadamente 512 ha, 2021.
+lm_relmutinf_7 <- ggplot(g_7_it) +
+  theme_minimal() +
+  geom_sf(aes(fill = relmutinf), linewidth = 0.01, color = "black") +
+  scale_fill_viridis_c(name = "Información \nmutua \nrelativa", option = "B", direction = -1) +
+  coord_sf(datum = st_crs(5367))
+lm_relmutinf_7
+```
+
+::: {#refs}
+:::

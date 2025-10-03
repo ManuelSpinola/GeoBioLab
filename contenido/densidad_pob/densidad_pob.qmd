@@ -1,0 +1,325 @@
+---
+title: "Densidad de población humana en Costa Rica (2015, 2025 y 2030)"
+
+author:
+  - name: Manuel Spínola
+    url: http://www.icomvis.una.ac.cr/index.php/manuel
+    affiliation: ICOMVIS - UNA
+    affiliation-url: http://www.icomvis.una.ac.cr/
+    orcid: 0000-0002-7839-1908
+
+format:
+  html:
+    embed-resources: true
+
+date: "2025-05-02"
+
+toc: true
+toc-title: Tabla de contenido
+toc-location: right
+toc-depth: 4
+execute: 
+  echo: false
+  include: false
+citation: true
+
+bibliography: references.bib
+
+lang: es
+
+title-block-banner: "#f0f3f5"
+title-block-banner-color: "#0041C2"
+---
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(easystats)
+library(sf)
+library(terra)
+library(tidyterra)
+library(rayshader)
+library(rayrender)
+library(MetBrewer)
+library(magick)
+library(colorspace)
+library(viridisLite)
+library(viridis)
+library(showtext)
+library(extrafont)
+library(waffle)
+library(crgeo)
+```
+
+![](Annotated_cr_3d_b.png)
+
+# Introducción
+
+Estimaciones restringidas para 2015, 2025 y 2030, del número total de personas por celda de cuadrícula, con una resolución de 3 segundos de arco (aproximadamente 100 metros en el ecuador). La proyección utilizada es el Sistema de Coordenadas Geográficas, WGS84. Las unidades representan el número de personas por píxel. El enfoque de mapeo se basa en una redistribución dasimétrica utilizando algoritmos de Random Forest [@Bondarenko2025].
+
+```{r}
+cr <- cr_outline_c
+```
+
+```{r}
+r_2015 <- rast("cri_pop_2015_CN_100m_R2024B_v1.tif")
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = cr, fill = "gray95") +
+  geom_spatraster(data = r_2015) +
+  scale_fill_viridis_c(option = "B", na.value = "transparent")
+```
+
+```{r}
+r_2025 <- rast("cri_pop_2025_CN_100m_R2024B_v1.tif")
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = cr, fill = "gray95") +
+  geom_spatraster(data = r_2025) +
+  scale_fill_viridis_c(option = "B", na.value = "transparent")
+```
+
+```{r}
+r_2030 <- rast("cri_pop_2030_CN_100m_R2024B_v1.tif")
+```
+
+```{r}
+ggplot() +
+  theme_minimal() +
+  geom_sf(data = cr, fill = "gray95") +
+  geom_spatraster(data = r_2030) +
+  scale_fill_viridis_c(option = "B", na.value = "transparent")
+```
+
+```{r}
+r_todos <- c(r_2015, r_2025, r_2030)
+```
+
+```{r}
+names(r_todos) <- c("Año 2015", "Año 2025", "Año 2030")
+```
+
+# Mapas
+
+```{r}
+#| warning: false
+#| message: false
+#| include: true
+#| out-width: 100%
+#| label: fig-densidad
+#| fig-cap: "Número estimado de personas por celda de cuadrícula a una resolución 3 segundos de arco (aproximadamente 100 metros en el ecuador) para los años 2015, 2025 y 2030."
+ggplot() +
+  theme_void() +
+  geom_sf(data = cr, fill = "gray95") +
+  geom_spatraster(data = r_todos) +
+  facet_wrap(~lyr) +
+  scale_fill_viridis_c(name = "Densidad de población (ind/ha)",
+                       option = "B", 
+                       na.value = "transparent",
+                       breaks = c(0,10,20,30,40,50,60,70,80),
+                       guide = guide_colorbar(
+                         position = "bottom",
+                         keyheight = unit(3, units = "mm"),
+                         keywidth = unit(60, units = "mm"),
+                         label.position = "bottom",
+                         title.position = "top",
+                         nrow = 1)) +
+  theme(legend.spacing.x = unit(0, 'cm'))
+  
+```
+
+## Interpretación de los mapas
+
+1.  Alta concentración en el Valle Central
+
+El área más brillante (amarillo intenso) corresponde al Gran Área Metropolitana, que abarca partes de San José, Heredia, Alajuela y Cartago. Esto indica altas densidades poblacionales, con un alto número de personas por celda de 100x100 metros. Es el núcleo urbano más denso del país.
+
+2.  Zonas intermedias (tonos anaranjados y púrpuras)
+
+Alrededor del núcleo denso se observan colores más oscuros (naranja y púrpura), que representan densidades intermedias. Estas áreas corresponden a ciudades satélites o zonas periurbanas.
+
+3.  Áreas rurales y de baja densidad
+
+Las zonas blancas o casi sin color en el mapa indican muy baja densidad o ausencia de población en esas celdas. Esto incluye:
+
+-   Zonas montañosas como la Cordillera de Talamanca, Guanacaste, y áreas protegidas.
+
+-   Regiones costeras menos habitadas y áreas boscosas o agrícolas.
+
+Para 2030 no se esperan mayores cambios en la localización de las densidad humana para Costa Rica.
+
+```{r}
+df_2015 <- freq(r_2015) |>
+  mutate(year = "2015")
+```
+
+```{r}
+df_2025 <- freq(r_2025) |>
+  mutate(year = "2025")
+```
+
+```{r}
+df_2030 <- freq(r_2030) |>
+  mutate(year = "2030")
+```
+
+```{r}
+df_todos <- bind_rows(df_2015, df_2025, df_2030)
+```
+
+```{r}
+df_todos$value <- as_factor(df_todos$value)
+```
+
+# Gráfico comparativo de los rasters entre años
+
+```{r}
+#| warning: false
+#| message: false
+#| include: true
+#| out-width: 100%
+#| label: fig-waffle
+#| fig-cap: "Número estimado de personas por celda de cuadrícula a una resolución 3 segundos de arco (aproximadamente 100 metros en el ecuador) para los años 2015, 2025, 2030."
+ggplot(df_todos, aes(fill = value, values = count/1000)) +
+  geom_waffle(color = "white", size = .25, n_rows = 20, flip = TRUE) +
+  facet_wrap(~year, nrow = 1, strip.position = "bottom") +
+  scale_x_discrete() +
+  scale_y_continuous(labels = function(x) x * 20, # make this multiplyer the same as n_rows
+                     expand = c(0,0)) +
+  coord_equal() +
+  scale_fill_viridis_d(name = "Personas por \ncelda de 100m", option = "A", direction = -1) +
+  theme_minimal(base_size = 12) +
+  theme(panel.grid = element_blank(), axis.ticks.y = element_line()) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  labs(title = "Cada cuadrado representa 1000 celdas",
+       x = "Año",
+       y = "Conteo")
+```
+
+# Conclusiones
+
+Este tipo de visualización es útil para:
+
+-   Planificación urbana: identificar zonas de alta presión demográfica.
+
+-   Gestión ambiental: analizar el impacto humano en áreas protegidas o frágiles.
+
+-   Análisis de accesibilidad: evaluar cobertura de servicios públicos.
+
+-   Modelado espacial: integrar la variable de densidad humana en modelos ecológicos, epidemiológicos o socioeconómicos.
+
+```{r}
+#| eval: false
+mat <- raster_to_matrix(r_2025)
+```
+
+```{r}
+#| eval: false
+mat_reduced = rayshader::resize_matrix(mat, 0.5)
+```
+
+```{r}
+#| eval: false
+pal <- viridis(n = 256, option = "D", direction = 1)
+swatchplot(pal)
+texture <- grDevices::colorRampPalette(pal, bias=1)(256)
+swatchplot(texture)
+```
+
+```{r}
+#| eval: false
+w <- nrow(mat_reduced)
+h <- ncol(mat_reduced)
+#Scale the dimensions so we can use them as multipliers
+wr <- w / max(c(w,h))
+hr <- h / max(c(w,h))
+# Limit ratio so that the shorter side is at least .75 of longer side
+if (min(c(wr, hr)) < .75) {
+    if (wr < .75) {
+        wr <- .75
+    } else {
+        hr <- .75
+    }
+}
+```
+
+```{r}
+#| eval: false
+mat %>%
+  height_shade(texture = texture) %>%
+  plot_3d(heightmap = mat,
+          zscale = 0.3,
+          solid = F,
+          shadowdepth = 0,
+          background = "white")
+
+# Adjusting Camera Angle
+render_camera(theta = 0,
+              phi = 70,
+              zoom = 0.55,
+              fov = 100
+)
+```
+
+```{r}
+#| eval: false
+render_highquality(
+    filename = "cr_3d_d.png",
+    samples = 500,
+    interactive = F,
+    lightdirection = 200, #Degree
+    lightaltitude = c(30, 80),
+    lightcolor = c("white", "white"),  # Set both lights to white
+    lightintensity = c(600, 100),
+    width = 1400,
+    height = 1580
+  )
+```
+
+```{r}
+#| eval: false
+pop_raster <- image_read("cr_3d_d.png")
+
+
+# Automatically enable font support
+showtext_auto()
+
+# Download and register the Philosopher font from Google Fonts
+font_add_google("Philosopher", regular = "400", bold = "700")
+
+pop_raster %>%
+  image_annotate("Costa Rica",
+                 gravity = "northeast",
+                 location = "+50+50",
+                 color = "red4",
+                 size = 120,
+                 font = "Philosopher",
+                 weight = 700,
+                 # degrees = 0,
+  ) %>%
+  image_annotate("Mapa de densidad de población humana (2025)",
+                 gravity = "northeast",
+                 location = "+50+175",
+                 color = "red4",
+                 size = 28.5,
+                 font = "Philosopher",  # Corrected font name
+                 weight = 500,
+                 # degrees = 0,
+  ) %>%
+  image_annotate("Visualización por: Manuel Spínola\nData: WorldPop 2025",
+                 gravity = "southwest",
+                 location = "+20+20",
+                 color = alpha("red4", .8),
+                 font = "Philosopher",  # Corrected font name
+                 size = 25,
+                 # degrees = 0,
+  ) %>%
+  image_write("Annotated_cr_3d_d.png", format = "png", quality = 100)
+```

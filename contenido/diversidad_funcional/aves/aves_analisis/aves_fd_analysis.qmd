@@ -1,0 +1,268 @@
+---
+title: "Untitled"
+---
+
+```{r}
+library(tidyverse)
+library(easystats)
+library(here)
+library(janitor)
+library(glue)
+library(sf)
+library(stars)
+library(terra)
+library(tidyterra)
+library(fundiversity)
+library(FD)
+library(mFD)
+library(traits)
+library(traitdata)
+library(TR8)
+library(rtry)
+library(traits.build)
+library(GIFT)
+library(funbiogeo)
+library(funspace)
+library(traitstrap)
+library(BIEN)
+library(traitdata)
+library(letsR)
+library(vroom)
+library(crgeo)
+library(paisaje)
+```
+
+```{r}
+av_sf_in_poly_6 <- st_read(here("contenido/diversidad_funcional/traits/aves_data/aves_pa_in_polygons_6.gpkg"))
+```
+
+```{r}
+av_sf_in_poly_6 |>
+  rowwise() %>% 
+  mutate(sumVar = sum(c_across(2:836))) |>
+  filter(sumVar > 100)
+```
+
+```{r}
+av_sf_in_poly_6 |>
+  rowwise() %>% 
+  mutate(sumVar = sum(c_across(2:836))) |>
+  filter(sumVar > 100) |>
+  ggplot() +
+  theme_minimal() +
+  geom_sf(aes(fill = sumVar)) +
+  scale_fill_viridis_c()
+```
+
+```{r}
+especies_traits <- data_read(here("contenido/diversidad_funcional/traits/aves_traits_data/aves_traits_obtained/aves_cr_traits.xlsx"))
+```
+
+```{r}
+names(especies_traits)
+```
+
+```{r}
+especies_traits <- especies_traits |>
+  select(species, hwi_ghwi, body_mass_log_ghwi, range_size_ghwi, latitude_ghwi, annual_temp_ghwi, temp_range_ghwi, annual_precip_ghwi, precip_range_ghwi, log_clutch_size_bb, log_human_population_density_bb)
+```
+
+```{r}
+dim(especies_traits)
+```
+
+```{r}
+sitios_especies_5 <- data_read("contenido/diversidad_funcional/aves_data/aves_pa_in_polygons_5_df.xlsx")
+```
+
+```{r}
+sitios_especies_6 <- data_read(here("contenido/diversidad_funcional/traits/aves_data/aves_pa_in_polygons_6_df.xlsx"))
+```
+
+```{r}
+sitios_especies_6
+```
+
+```{r}
+sitios_especies_5 <- sitios_especies_5 |>
+  rename(site = h3_address)
+sitios_especies_5
+```
+
+```{r}
+sitios_especies_6 <- sitios_especies_6 |>
+  rename(site = h3_address)
+sitios_especies_6
+```
+
+```{r}
+sitios_5 <- st_read("aves_data/grilla_5.gpkg")
+```
+
+```{r}
+sitios_6 <- st_read(here("traits/aves_data/grilla_6.gpkg"))
+```
+
+```{r}
+sitios_5 <- sitios_5 |>
+  rename(site = h3_address)
+```
+
+```{r}
+sitios_6 <- sitios_6 |>
+  rename(site = h3_address)
+```
+
+# Computing Functional Diversity metrics
+
+## Filtrar traits
+
+```{r}
+especies_traits_filtered <- fb_filter_traits_by_species_coverage(
+  especies_traits, threshold_species_proportion =  0.75
+)
+```
+
+```{r}
+dim(especies_traits_filtered)
+```
+
+```{r}
+names(especies_traits_filtered)
+```
+
+## Filtrar sitios
+
+```{r}
+# Filter sites with at least % species covered
+sitios_especies_5_filtered <- fb_filter_sites_by_trait_coverage(
+  sitios_especies_5, especies_traits_filtered, threshold_traits_proportion = 0.5
+)
+```
+
+```{r}
+sitios_especies_5_filtered
+```
+
+```{r}
+# Filter sites with at least % species covered
+sitios_especies_6_filtered <- fb_filter_sites_by_trait_coverage(
+  sitios_especies_6, especies_traits_filtered, threshold_traits_proportion = 0.7
+)
+```
+
+```{r}
+sitios_especies_6_filtered
+```
+
+### Community-Weighted Mean (CWM)
+
+```{r}
+cwm_5 <- fb_cwm(sitios_especies_5, especies_traits_filtered)
+```
+
+```{r}
+cwm_6 <- fb_cwm(sitios_especies_6, especies_traits_filtered)
+```
+
+```{r}
+cwm_5_wide <- cwm_5 |>
+  pivot_wider(names_from = trait, values_from = cwm)
+```
+
+```{r}
+cwm_6_wide <- cwm_6 |>
+  pivot_wider(names_from = trait, values_from = cwm)
+```
+
+```{r}
+cwm_6_wide
+```
+
+```{r}
+levels(cwm_6$trait)
+```
+
+```{r}
+body_mass_cwm_5 <- subset(cwm_5, trait == "body_mass_value")
+```
+
+```{r}
+body_mass_cwm_6 <- subset(cwm_6, trait == "body_mass_value")
+```
+
+```{r}
+body_mass_cwm_5
+```
+
+```{r}
+fb_map_site_data(sitios_5, body_mass_cwm_5, "cwm") +
+  scale_fill_viridis_c(trans = "log10") +
+  labs(title = "Aves Body Mass CWM")
+```
+
+## functional diversity indices
+
+### especies_traits
+
+```{r}
+especies_traits_filtered_na <- drop_na(especies_traits_filtered)
+```
+
+```{r}
+dim(especies_traits_filtered_na)
+```
+
+```{r}
+summary(especies_traits_filtered_na)
+```
+
+```{r}
+rownames(especies_traits_filtered_na) <- especies_traits_filtered_na$species
+```
+
+```{r}
+especies_traits_filtered_na <- especies_traits_filtered_na[, -1]
+```
+
+```{r}
+especies_traits_filtered_na
+```
+
+### sitios_especies
+
+```{r}
+rownames(sitios_especies_6) <- sitios_especies_6$site
+```
+
+```{r}
+sitios_especies_6 <- sitios_especies_6[, -1]
+```
+
+```{r}
+sitios_especies_6
+```
+
+```{r}
+especies_traits_filtered_na <- scale(especies_traits_filtered_na)
+```
+
+```{r}
+fric <- fundiversity::fd_fric(especies_traits_filtered_na, sitios_especies_6)
+```
+
+```{r}
+fb_map_site_data(sitios_6, fric, "FRic") +
+  scale_fill_viridis_c(option = "magma") +
+  labs(title = "Birds Functional Richness")
+```
+
+```{r}
+fric_sf <- left_join(sitios_6, fric, by = "site")
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = fric_sf, aes(fill = FRic)) +
+  scale_fill_viridis_c()
+```

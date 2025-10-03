@@ -1,0 +1,20 @@
+---
+title: "Acerca de GeoBiolab"
+---
+
+🌍 GeoBioLab
+
+GeoBioLab (Laboratorio de Geotecnologías para la Conservación de la Biodiversidad) es un espacio académico y de investigación adscrito al Instituto Internacional para la Conservación y Manejo de la Vida Silvestre (ICOMVIS) de la Universidad Nacional, Costa Rica.
+
+Nuestro propósito es integrar la teledetección, los sensores remotos y el análisis espacial para generar conocimiento aplicado a la conservación de la biodiversidad y el manejo sostenible de los ecosistemas.
+
+En GeoBioLab promovemos la innovación científica y tecnológica para:
+
+-	Desarrollar herramientas de análisis espacial que apoyen la toma de decisiones en conservación.
+
+-	Implementar metodologías de monitoreo de la biodiversidad con datos geoespaciales.
+
+-	Fortalecer las capacidades técnicas en el uso de geotecnologías mediante docencia, investigación y extensión.
+
+-	Generar información de calidad que contribuya a la gestión de la biodiversidad en Costa Rica y la región.
+

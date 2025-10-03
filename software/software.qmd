@@ -1,0 +1,30 @@
+---
+title: "Software desarrollado por GeoBioLab"
+---
+
+# Paquetes de R
+
+[**crgrids**](https://manuelspinola.github.io/crgrids/) \| Grillas espaciales jerárquicas para el estudio y monitoreo de la biodiversidad en Costa Rica \| 2023
+
+[**crgeo**](https://manuelspinola.github.io/crgeo/) \| Datos geoespaciales de Costa Rica \| 2023
+
+[**crcc**](https://manuelspinola.github.io/crcc/) \| Datos geoespaciales para el análisis del impacto del cambio climático en Costa Rica \| 2023
+
+[**cageo**](https://manuelspinola.github.io/cageo/) \| Datos geoespaciales en América Central \| 2023
+
+[**cacc**](https://manuelspinola.github.io/cacc/) \| Datos geoespaciales para el análisis del impacto del cambio climático en América Central \| 2023
+
+
+
+
+[**cacc**](https://manuelspinola.github.io/cacc/) \| Datos geoespaciales para el análisis del impacto del cambio climático en América Central \| 2023
+
+[**cacc**](https://manuelspinola.github.io/cacc/) \| Datos geoespaciales para el análisis del impacto del cambio climático en América Central \| 2023
+
+[**cacc**](https://manuelspinola.github.io/cacc/) \| Datos geoespaciales para el análisis del impacto del cambio climático en América Central \| 2023
+
+# Apps
+
+
+
+

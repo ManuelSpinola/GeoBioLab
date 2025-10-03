@@ -1,0 +1,121 @@
+---
+title: "Untitled"
+---
+
+
+```{r}
+library(tidyverse)
+library(easystats)
+library(here)
+library(janitor)
+library(glue)
+library(sf)
+library(stars)
+library(terra)
+library(tidyterra)
+library(fundiversity)
+library(FD)
+library(mFD)
+library(traits)
+library(traitdata)
+library(TR8)
+library(rtry)
+library(traits.build)
+library(GIFT)
+library(funbiogeo)
+library(funspace)
+library(traitstrap)
+library(BIEN)
+library(traitdata)
+library(letsR)
+library(vroom)
+library(crgeo)
+library(paisaje)
+```
+
+
+```{r}
+cr_especies_traits <- data_read(here("traits/aves_traits_data/aves_traits_obtained/aves_cr_traits.xlsx"))
+```
+
+```{r}
+glimpse(cr_especies_traits)
+```
+
+
+
+```{r}
+cr_especies_traits <- cr_especies_traits |>
+  select_at(vars(starts_with("spec"), contains("diet"))) |>
+  select(-diet_ghwi, -diet_bb)
+```
+
+
+```{r}
+cr_especies_traits_birdlife <- data_read(here("traits/aves_traits_data/aves_traits_obtained/aves_cr_traits_birdlife.xlsx")) |>
+  clean_names()
+```
+
+```{r}
+cr_especies_traits_birdlife$min_latitude <- as.numeric(cr_especies_traits_birdlife$min_latitude)
+cr_especies_traits_birdlife$max_latitude <- as.numeric(cr_especies_traits_birdlife$max_latitude)
+cr_especies_traits_birdlife$centroid_latitude <- as.numeric(cr_especies_traits_birdlife$centroid_latitude)
+cr_especies_traits_birdlife$centroid_longitude <- as.numeric(cr_especies_traits_birdlife$centroid_longitude)
+cr_especies_traits_birdlife$range_size <- as.numeric(cr_especies_traits_birdlife$range_size)
+```
+
+```{r}
+cr_especies_traits_birdlife <- cr_especies_traits_birdlife |>
+  select(species, kipps_distance, hand_wing_index, mass, range_size, centroid_latitude, centroid_longitude)
+```
+
+```{r}
+especies_traits_combined <- mutate(cr_especies_traits, cr_especies_traits_birdlife) |>
+  mutate_if(is.character, as.factor)
+```
+
+
+```{r}
+especies_traits_combined <- drop_na(especies_traits_combined)
+```
+
+```{r}
+especies_traits_combined <- especies_traits_combined |>
+  column_to_rownames(var = "species")
+```
+
+```{r}
+especies_traits_combined
+```
+
+
+```{r}
+names(especies_traits_combined)
+```
+
+```{r}
+traits_type <- data.frame(trait_name = names(especies_traits_combined), trait_type = c("Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "N", "Q", "Q", "Q", "Q", "Q", "Q"))
+```
+
+```{r}
+traits_type
+```
+
+```{r}
+traits_summ <- mFD::sp.tr.summary(
+  tr_cat     = traits_type,   
+  sp_tr      = especies_traits_combined, 
+  stop_if_NA = TRUE)
+```
+
+```{r}
+traits_summ
+```
+
+
+
+
+
+
+
+
